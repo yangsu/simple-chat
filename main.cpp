@@ -3,6 +3,8 @@
 #include <cstdlib>
 #include <stdio.h>
 
+#include "server.h"
+
 using namespace std;
 
 void print(string message) { cout << message << endl; }
