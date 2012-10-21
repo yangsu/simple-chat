@@ -6,6 +6,8 @@
  */
 
 #include <string>
+#include <sstream>
+#include <vector>
 #include <cerrno>
 
 #define DEBUG
@@ -56,6 +58,18 @@ bool readInput(void (*processInput)(string input)) {
   }
 
   return true;
+}
+
+vector<string> split(const string &s, char delim) {
+    vector<string> elems;
+    stringstream ss(s);
+    string item;
+
+    while(getline(ss, item, delim)) {
+      elems.push_back(item);
+    }
+
+    return elems;
 }
 
 // Print functions
