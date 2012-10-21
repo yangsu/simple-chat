@@ -3,8 +3,9 @@
 #include <cstdlib>
 #include <stdio.h>
 
-#include "server.h"
 #include "utils.h"
+#include "server.h"
+#include "client.h"
 using namespace std;
 
 struct Command {

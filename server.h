@@ -21,7 +21,7 @@ class Server : Socket {
       string address;
     };
 
-    std::map<int, Info> map;
+    map<int, Info> map;
 };
 
 #endif
