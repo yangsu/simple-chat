@@ -25,8 +25,8 @@ struct Command {
   string description;
 };
 
-void printCommands(Command cmds[]);
-bool execCommand(Command cmds[], string input);
+void printCommands(Command cmds[], unsigned int size);
+bool execCommand(Command cmds[], unsigned int size, string input);
 bool readInput(void (*processInput)(string input));
 vector<string> split(const string &s, char delim);
 

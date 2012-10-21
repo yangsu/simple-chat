@@ -15,7 +15,7 @@ Socket::Socket() {
 }
 
 Socket::~Socket() {
-  this->close(fSockfd);
+  this->closeFd(fSockfd);
   shutdown(fSockfd, 2);
 }
 
@@ -40,7 +40,7 @@ int Socket::create() {
   return sockfd;
 }
 
-void Socket::close(int sockfd) {
+void Socket::closeFd(int sockfd) {
   if (!fReady)
     return;
 
@@ -63,14 +63,14 @@ int Socket::closeAll() {
     return -1;
   for (int i = 0; i <= fMaxfd; ++i) {
     if (FD_ISSET(i, &fMasterSet))
-      this->close(i);
+      this->closeFd(i);
   }
   fConnected = false;
   return 0;
 }
 
 void Socket::onFailedConnection(int sockfd) {
-  this->close(sockfd);
+  this->closeFd(sockfd);
 }
 
 void Socket::setNonBlocking(int sockfd) {

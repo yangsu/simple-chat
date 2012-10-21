@@ -10,16 +10,16 @@ using namespace std;
 
 // Functions for commands
 void noop() {};
-void printCommands(Command cmds[]) {
-  unsigned int end = sizeof(cmds)/sizeof(Command);
-  printf("%u commands: \n", end);
-  for (unsigned int i = 0; i < end; ++i) {
+
+void printCommands(Command cmds[], unsigned int size) {
+  printf("%u commands: \n", size);
+  for (unsigned int i = 0; i < size; ++i) {
     printf("\t%s : %s\n", cmds[i].key.c_str(), cmds[i].description.c_str());
   }
 }
 
-bool execCommand(Command cmds[], string input) {
-  for (unsigned int i = 0, end = sizeof(cmds)/sizeof(Command); i < end; ++i) {
+bool execCommand(Command cmds[], unsigned int size, string input) {
+  for (unsigned int i = 0; i < size; ++i) {
     if (input.compare(cmds[i].key) == 0) {
       cmds[i].func();
       return true;
@@ -36,10 +36,10 @@ bool readInput(void (*processInput)(string input)) {
 
     processInput(input);
 
-    if (input.compare("q") == 0)
-      break;
+    if (input.compare("q") == 0) {
+      return true;
+    }
   }
-
   return true;
 }
 

@@ -22,6 +22,7 @@ void createServer() {
   server = new ChatServer();
 }
 
+unsigned int size;
 // Move function declaration so cmds can be populated properly
 void help();
 Command cmds[] = {
@@ -30,10 +31,10 @@ Command cmds[] = {
   {"q", noop, "quit"}
 };
 
-void help () { printCommands(cmds); }
+void help () { printCommands(cmds, size); }
 
 void processInput(string input) {
-  if (execCommand(cmds, input)) {
+  if (execCommand(cmds, size, input)) {
 
   } else {
 
@@ -41,6 +42,7 @@ void processInput(string input) {
 }
 
 int main(int argc, char *argv[]) {
+  size = sizeof(cmds)/sizeof(Command);
   print("Simple Chat. Type \"help\" for a list of commands");
 
   readInput(processInput);

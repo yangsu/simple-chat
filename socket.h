@@ -31,7 +31,7 @@ class Socket {
     * Close the socket specified by the socket file descriptor argument. Will
     * update fMaxfd and working set properly
     */
-    void close(int sockfd);
+    void closeFd(int sockfd);
 
     /**
     * Called when a broken or terminated connection has been detected. Closes
