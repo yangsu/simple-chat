@@ -29,6 +29,11 @@ class Socket {
     void closeSocket(int sockfd);
 
     /**
+     * Close all open sockets
+     */
+    int closeAllSockets();
+
+    /**
     * Called when a broken or terminated connection has been detected. Closes
     * the socket file descriptor and removes it from the master set by default.
     * Override to handle broken connections differently

@@ -59,6 +59,17 @@ void Socket::closeSocket(int sockfd) {
     fConnected = false;
 }
 
+int Socket::closeAllSockets() {
+  if (!fConnected || !fReady)
+    return -1;
+  for (int i = 0; i <= fMaxfd; ++i) {
+    if (FD_ISSET(i, &fMasterSet))
+      this->closeSocket(i);
+  }
+  fConnected = false;
+  return 0;
+}
+
 void Socket::onFailedConnection(int sockfd) {
   this->closeSocket(sockfd);
 }

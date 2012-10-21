@@ -18,7 +18,7 @@ void Server::Server(int port) {
 }
 
 void Server::~Server() {
-  this->disconnectAll();
+  this->closeAllSockets();
 }
 
 int Server::acceptConnections() {
@@ -56,17 +56,5 @@ int Server::acceptConnections() {
       this->addToMasterSet(newfd);
     }
   }
-  return 0;
-}
-
-
-int Server::disconnectAll() {
-  if (!fConnected || !fReady)
-    return -1;
-  for (int i = 0; i <= fMaxfd; ++i) {
-    if (FD_ISSET(i, &fMasterSet))
-      this->closeSocket(i);
-  }
-  fConnected = false;
   return 0;
 }
