@@ -22,9 +22,9 @@ Command cmds[] = {
 
 void help() {
   unsigned int end = sizeof(cmds)/sizeof(Command);
-  cout << end << " commands:" << endl;
+  printf("%u commands: \n", end);
   for (unsigned int i = 0; i < end; ++i) {
-    cout << "  " << cmds[i].cmd << " : " << cmds[i].funcName << endl;
+    printf("\t%s : %s\n", cmds[i].cmd.c_str(), cmds[i].funcName.c_str());
   }
 }
 
