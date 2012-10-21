@@ -8,8 +8,9 @@
 
 using namespace std;
 
+// vector<string> noargs(0);
 // Functions for commands
-void noop() {};
+void noop(int count, ...) {};
 
 void printCommands(Command cmds[], unsigned int size) {
   printf("%u commands: \n", size);
@@ -18,10 +19,25 @@ void printCommands(Command cmds[], unsigned int size) {
   }
 }
 
+vector<string> split(const string &s, char delim) {
+    vector<string> elems;
+    stringstream ss(s);
+    string item;
+
+    while(getline(ss, item, delim)) {
+      elems.push_back(item);
+    }
+
+    return elems;
+}
+
 bool execCommand(Command cmds[], unsigned int size, string input) {
   for (unsigned int i = 0; i < size; ++i) {
-    if (input.compare(cmds[i].key) == 0) {
-      cmds[i].func();
+    vector<string> args = split(input, ' ');
+    if (args[0].compare(cmds[i].key) == 0) {
+      args.erase(args.begin());
+      cmds[i].func(args.size(), (char**)&(args[0]));
+
       return true;
     }
   }
@@ -41,18 +57,6 @@ bool readInput(void (*processInput)(string input)) {
     }
   }
   return true;
-}
-
-vector<string> split(const string &s, char delim) {
-    vector<string> elems;
-    stringstream ss(s);
-    string item;
-
-    while(getline(ss, item, delim)) {
-      elems.push_back(item);
-    }
-
-    return elems;
 }
 
 // Print functions
