@@ -2,17 +2,23 @@
 #define SERVER_H
 
 #include <map>
+#include "utils.h";
+#include "socket.h";
 
 using namespace std;
 
-class Server {
+class Server : Socket {
   public:
     Server(int port);
     ~Server();
 
   private:
-    int port;
-    map<string, string> clients;
+    struct Info {
+      string name;
+      string address;
+    };
+
+    std::map<int, Info> map;
 };
 
 #endif

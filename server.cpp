@@ -1,4 +1,6 @@
 #include "server.h"
+#include <netinet/in.h>
+#include <sys/socket.h>
 
 using namespace std;
 
