@@ -18,8 +18,8 @@ Client::Client(const char* hostname, int port) {
 }
 
 void Client::onFailedConnection(int sockfd) { //cleanup and recreate socket
-    this->closeSocket(fSockfd);
-    fSockfd = this->createSocket();
+    this->close(fSockfd);
+    fSockfd = this->create();
     //Add fSockfd since the client will be using it to read/write
     this->addToMasterSet(fSockfd);
 }

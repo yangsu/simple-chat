@@ -20,18 +20,18 @@ class Socket {
     /**
     * Create a socket and return its file descriptor. Returns -1 on failure
     */
-    int createSocket();
+    int create();
 
     /**
     * Close the socket specified by the socket file descriptor argument. Will
     * update fMaxfd and working set properly
     */
-    void closeSocket(int sockfd);
+    void close(int sockfd);
 
     /**
      * Close all open sockets
      */
-    int closeAllSockets();
+    int closeAll();
 
     /**
     * Called when a broken or terminated connection has been detected. Closes

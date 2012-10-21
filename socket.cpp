@@ -12,15 +12,15 @@ Socket::Socket() {
   fReady = false;
   fReadSuspended = false;
   fWriteSuspended = false;
-  fSockfd = this->createSocket();
+  fSockfd = this->create();
 }
 
 Socket::~Socket() {
-  this->closeSocket(fSockfd);
+  this->close(fSockfd);
   shutdown(fSockfd, 2);
 }
 
-int Socket::createSocket() {
+int Socket::create() {
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd < 0) {
     debugf("ERROR opening socket\n");
@@ -41,7 +41,7 @@ int Socket::createSocket() {
   return sockfd;
 }
 
-void Socket::closeSocket(int sockfd) {
+void Socket::close(int sockfd) {
   if (!fReady)
     return;
 
@@ -59,19 +59,19 @@ void Socket::closeSocket(int sockfd) {
     fConnected = false;
 }
 
-int Socket::closeAllSockets() {
+int Socket::closeAll() {
   if (!fConnected || !fReady)
     return -1;
   for (int i = 0; i <= fMaxfd; ++i) {
     if (FD_ISSET(i, &fMasterSet))
-      this->closeSocket(i);
+      this->close(i);
   }
   fConnected = false;
   return 0;
 }
 
 void Socket::onFailedConnection(int sockfd) {
-  this->closeSocket(sockfd);
+  this->close(sockfd);
 }
 
 void Socket::addToMasterSet(int sockfd) {

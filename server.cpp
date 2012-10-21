@@ -18,7 +18,7 @@ void Server::Server(int port) {
 }
 
 void Server::~Server() {
-  this->closeAllSockets();
+  this->closeAll();
 }
 
 int Server::acceptConnections() {
