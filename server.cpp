@@ -14,9 +14,10 @@ Server::Server(int port) {
   serverAddr.sin_port = htons(port);
 
   if (bind(fSockfd, (sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
-  debugf("ERROR on binding: %s\n", strerror(errno));
-  fReady = false;
+    debugf("ERROR on binding: %s\n", strerror(errno));
+    fReady = false;
   }
+  debugf("Server started on port %d\n", port);
 }
 
 Server::~Server() {

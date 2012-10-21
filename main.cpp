@@ -11,7 +11,7 @@ using namespace std;
 
 ChatServer* server;
 void destroyServer(int count = 0, ...) {
-  if (server) {
+  if (server != NULL) {
     delete server;
     server = NULL;
   }
@@ -20,15 +20,34 @@ void destroyServer(int count = 0, ...) {
 void createServer(int count, ...) {
   va_list vl;
   va_start(vl, count);
-  char** val=va_arg(vl,char**);
+  char** args = va_arg(vl, char**);
+  va_end(vl);
+
+  destroyServer();
+  if (count) {
+    int port = atoi(*args);
+    server = new ChatServer(port);
+  } else {
+    server = new ChatServer();
+  }
+}
+
+void createClient(int count, ...) {
+  va_list vl;
+  va_start(vl, count);
+  char** args = va_arg(vl, char**);
   va_end(vl);
 
   for (int i = 0; i < count; i++) {
-    printf ("arg %s\n",val[i]);
+    printf ("arg %s\n",args[i]);
   }
 
   destroyServer();
   server = new ChatServer();
+}
+
+void quit(int count, ...) {
+  destroyServer();
 }
 
 unsigned int size;
@@ -37,7 +56,7 @@ void help(int count, ...);
 Command cmds[] = {
   {"server", createServer, "start server. can pass in an optional port number argument"},
   {"help", help, "help"},
-  {"q", noop, "quit"}
+  {"q", quit, "quit"}
 };
 
 void help (int count, ...) { printCommands(cmds, size); }

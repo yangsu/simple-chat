@@ -6,7 +6,7 @@ ChatServer::ChatServer (int port) {
 }
 
 ChatServer::~ChatServer () {
-  fServer->closeAll();
+  delete fServer;
 }
 
 void ChatServer::listen() {

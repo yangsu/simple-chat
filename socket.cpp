@@ -59,8 +59,6 @@ void Socket::closeFd(int sockfd) {
 }
 
 int Socket::closeAll() {
-  if (!fConnected || !fReady)
-    return -1;
   for (int i = 0; i <= fMaxfd; ++i) {
     if (FD_ISSET(i, &fMasterSet))
       this->closeFd(i);
