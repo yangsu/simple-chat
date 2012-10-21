@@ -34,9 +34,7 @@ int Socket::createSocket() {
     return -1;
   }
 
-  // set non blocking
-  int flags = fcntl(sockfd, F_GETFL);
-  fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
+  this->setNonBlocking(sockfd);
 
   debugf("Opened fd:%d\n", sockfd);
   fReady = true;

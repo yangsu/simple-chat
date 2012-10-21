@@ -11,7 +11,7 @@
 #define DEBUG
 #define MAX_PACKET_LENGTH 1024
 #define DEFAULT_PORT 15555
-#define MAX_WAITING_CLIENTS 100
+#define MAX_CLIENTS 100
 
 using namespace std;
 

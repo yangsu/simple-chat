@@ -36,6 +36,11 @@ class Socket {
     virtual void onFailedConnection(int sockfd);
 
     /**
+     * Set the socket specified by the socket file descriptor as nonblocking
+     */
+    void setNonBlocking(int sockfd);
+
+    /**
     * Add the socket specified by the socket file descriptor to the master
     * file descriptor set, which is used to in the select() to detect new data
     * or connections
