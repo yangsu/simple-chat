@@ -77,6 +77,65 @@ int Socket::read(void (*onRead)(int, const void*, size_t)) {
 
   int totalBytesRead = 0;
 
+  // char packet[MAX_PACKET_LENGTH];
+  for (int i = 0; i <= fMaxfd; ++i) {
+   if (!FD_ISSET (i, &fMasterSet))
+     continue;
+
+   memset(packet, 0, MAX_PACKET_LENGTH);
+
+   int attempts = 0;
+   bool failure = false;
+
+   int bytesReadInPacket = 0;
+
+   while (fConnected && !failure) {
+     int retval = read(i, packet + bytesReadInPacket,
+               MAX_PACKET_LENGTH - bytesReadInPacket);
+
+     ++attempts;
+
+     if (retval < 0) {
+       if (errno == EWOULDBLOCK || errno == EAGAIN) {
+         if (bytesReadInPacket > 0)
+           continue; //incomplete packet or frame, keep tring
+         else
+           break; //nothing to read
+       }
+       debugf("Read() failed with error: %s\n", strerror(errno));
+       failure = true;
+       break;
+     }
+
+     if (retval == 0) {
+       debugf("Peer closed connection or connection failed\n");
+       failure = true;
+       break;
+     }
+
+     bytesReadInPacket += retval;
+     if (bytesReadInPacket < MAX_PACKET_LENGTH) {
+       debugf("Read %d/%d\n", bytesReadInPacket, MAX_PACKET_LENGTH);
+       continue; //incomplete packet, keep trying
+     }
+
+     debugf("read packet from fd:%d in %d tries\n", fSockfd, attempts);
+
+     totalBytesRead += bytesReadInPacket;
+     bytesReadInPacket = 0;
+     attempts = 0;
+   }
+
+   if (failure) {
+     onRead(i, NULL, 0);
+     this->onFailedConnection(i);
+     continue;
+   }
+
+   if (totalBytesRead > 0) {
+     onRead(i, packet, totalBytesRead);
+   }
+  }
   return totalBytesRead;
 }
 
@@ -85,5 +144,54 @@ int Socket::writePacket(void* data, size_t size) {
     return -1;
 
   int totalBytesWritten = 0;
+
+  char packet[MAX_PACKET_LENGTH];
+  for (int i = 0; i <= fMaxfd; ++i) {
+    if (!FD_ISSET (i, &fMasterSet))
+      continue;
+
+    int bytesWrittenInPacket = 0;
+    int attempts = 0;
+    bool failure = false;
+    while (bytesWrittenInPacket < size && fConnected && !failure) {
+      memset(packet, 0, MAX_PACKET_LENGTH);
+      memcpy(packet + HEADER_SIZE, (char*)data, size);
+
+      int retval = write(i, packet + bytesWrittenInPacket,
+        MAX_PACKET_LENGTH - bytesWrittenInPacket);
+      attempts++;
+
+      if (retval < 0) {
+        if (errno == EPIPE) {
+          debugf("broken pipe, client closed connection");
+          failure = true;
+          break;
+        } else if (errno == EWOULDBLOCK || errno == EAGAIN) {
+          if (bytesWrittenInPacket > 0)
+            continue; //incomplete packet or frame, keep trying
+          else
+            break; //client not available, skip current transfer
+        } else {
+          debugf("write(%d) failed with error:%s\n", i, strerror(errno));
+
+          failure = true;
+          break;
+        }
+      }
+
+      bytesWrittenInPacket += retval;
+      if (bytesWrittenInPacket < MAX_PACKET_LENGTH)
+        continue; //incomplete packet, keep trying
+
+      debugf("wrote packet to fd:%d in %d tries\n", i, attempts);
+
+      totalBytesWritten = bytesWrittenInPacket;
+      bytesWrittenInPacket = 0;
+      attempts = 0;
+    }
+
+    if (failure)
+      this->onFailedConnection(i);
+  }
   return totalBytesWritten;
 }
