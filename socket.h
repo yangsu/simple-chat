@@ -8,7 +8,7 @@ class Socket {
     Socket();
     virtual ~Socket();
 
-    bool isConnected() { return fConnected; }
+    bool isConnected() { return fReady && fConnected; }
 
     int write(void* data, size_t size);
     int read(void (*onRead)(int cid, const void* data, size_t size));

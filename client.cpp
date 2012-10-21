@@ -24,7 +24,7 @@ void Client::onFailedConnection(int sockfd) { //cleanup and recreate socket
     this->addToMasterSet(fSockfd);
 }
 
-int Client::connectToServer() {
+int Client::connect() {
     if (!fReady)
         return -1;
     if (fConnected)

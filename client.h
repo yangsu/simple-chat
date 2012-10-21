@@ -13,7 +13,7 @@ public:
      * or reconnect to the server. For blocking sockets, this method will block
      * until the connection is accepted by the server.
      */
-    int connectToServer();
+    int connect();
 protected:
     /**
      * Client needs to recreate the socket when a connection is broken because

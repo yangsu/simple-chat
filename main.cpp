@@ -5,7 +5,7 @@
 
 #include "utils.h"
 #include "server.h"
-#include "client.h"
+#include "chatclient.h"
 using namespace std;
 
 struct Command {
