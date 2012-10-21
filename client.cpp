@@ -1,4 +1,11 @@
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <cerrno>
+
 #include "client.h"
+
+using namespace std;
 
 Client::Client(const char* hostname, int port) {
     //Add fSockfd since the client will be using it to read/write
@@ -24,7 +31,7 @@ void Client::onFailedConnection(int sockfd) { //cleanup and recreate socket
     this->addToMasterSet(fSockfd);
 }
 
-int Client::connect() {
+int Client::connectToServer() {
     if (!fReady)
         return -1;
     if (fConnected)

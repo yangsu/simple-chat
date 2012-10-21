@@ -12,7 +12,7 @@ class ChatServer {
     void listen();
 
   private:
-    Server fServer;
+    Server* fServer;
 };
 
 #endif

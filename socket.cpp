@@ -2,16 +2,14 @@
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
-#include "Sockets.h"
-#include "SkData.h"
+
+#include "Socket.h"
 
 Socket::Socket() {
   fMaxfd = 0;
   FD_ZERO(&fMasterSet);
   fConnected = false;
   fReady = false;
-  fReadSuspended = false;
-  fWriteSuspended = false;
   fSockfd = this->create();
 }
 
@@ -80,13 +78,13 @@ void Socket::addToMasterSet(int sockfd) {
     fMaxfd = sockfd;
 }
 
-int Socket::read(void (*onRead)(int, const void*, size_t)) {
+int Socket::readData(void (*onRead)(int, const void*, size_t)) {
   if (!fConnected || !fReady || NULL == onRead)
     return -1;
 
   int totalBytesRead = 0;
 
-  // char packet[MAX_PACKET_LENGTH];
+  char packet[MAX_PACKET_LENGTH];
   for (int i = 0; i <= fMaxfd; ++i) {
    if (!FD_ISSET (i, &fMasterSet))
      continue;
@@ -148,7 +146,7 @@ int Socket::read(void (*onRead)(int, const void*, size_t)) {
   return totalBytesRead;
 }
 
-int Socket::writePacket(void* data, size_t size) {
+int Socket::writeData(void* data, size_t size) {
   if (size <= 0 || NULL == data || !fConnected || !fReady)
     return -1;
 
@@ -159,12 +157,12 @@ int Socket::writePacket(void* data, size_t size) {
     if (!FD_ISSET (i, &fMasterSet))
       continue;
 
-    int bytesWrittenInPacket = 0;
+    unsigned int bytesWrittenInPacket = 0;
     int attempts = 0;
     bool failure = false;
     while (bytesWrittenInPacket < size && fConnected && !failure) {
       memset(packet, 0, MAX_PACKET_LENGTH);
-      memcpy(packet + HEADER_SIZE, (char*)data, size);
+      memcpy(packet, (char*)data, size);
 
       int retval = write(i, packet + bytesWrittenInPacket,
         MAX_PACKET_LENGTH - bytesWrittenInPacket);

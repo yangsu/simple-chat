@@ -3,8 +3,9 @@
 
 #include <netinet/in.h>
 #include "utils.h"
+#include "socket.h"
 
-class Client : Socket {
+class Client : public Socket {
 public:
     Client(const char* hostname, int port = DEFAULT_PORT);
 
@@ -13,13 +14,15 @@ public:
      * or reconnect to the server. For blocking sockets, this method will block
      * until the connection is accepted by the server.
      */
-    int connect();
+    int connectToServer();
+
 protected:
     /**
      * Client needs to recreate the socket when a connection is broken because
      * connect can only be called successfully once.
      */
     virtual void onFailedConnection(int sockfd);
+
 private:
     sockaddr_in fServerAddr;
 };

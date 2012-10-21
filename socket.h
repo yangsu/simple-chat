@@ -10,8 +10,13 @@ class Socket {
 
     bool isConnected() { return fReady && fConnected; }
 
-    int write(void* data, size_t size);
-    int read(void (*onRead)(int cid, const void* data, size_t size));
+    int writeData(void* data, size_t size);
+    int readData(void (*onRead)(int cid, const void* data, size_t size));
+
+    /**
+     * Close all open sockets
+     */
+    int closeAll();
 
   protected:
     struct header {
@@ -27,11 +32,6 @@ class Socket {
     * update fMaxfd and working set properly
     */
     void close(int sockfd);
-
-    /**
-     * Close all open sockets
-     */
-    int closeAll();
 
     /**
     * Called when a broken or terminated connection has been detected. Closes

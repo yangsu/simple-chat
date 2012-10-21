@@ -7,14 +7,15 @@
 
 using namespace std;
 
-class Server : Socket {
+class Server : public Socket {
   public:
     Server(int port = DEFAULT_PORT);
     ~Server();
 
-  private:
     void disconnectAll();
-    void acceptConnections();
+    int acceptConnections();
+
+  private:
 
     struct Info {
       string name;

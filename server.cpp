@@ -1,11 +1,13 @@
+#include <cerrno>
 #include <netinet/in.h>
 #include <sys/socket.h>
 
+#include "utils.h"
 #include "server.h"
 
 using namespace std;
 
-void Server::Server(int port) {
+Server::Server(int port) {
   sockaddr_in serverAddr;
   serverAddr.sin_family = AF_INET;
   serverAddr.sin_addr.s_addr = INADDR_ANY;
@@ -17,7 +19,7 @@ void Server::Server(int port) {
   }
 }
 
-void Server::~Server() {
+Server::~Server() {
   this->closeAll();
 }
 
@@ -38,8 +40,8 @@ int Server::acceptConnections() {
     if (sel < 0) {
       debugf("select() failed with error %s\n", strerror(errno));
       continue;
-    } else if if (sel == 0) {
-      debug("select() timed out");
+    } else if (sel == 0) {
+      debugf("select() timed out");
       continue;
     } else {
       sockaddr_in clientAddr;
