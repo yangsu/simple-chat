@@ -85,6 +85,7 @@ void print(string message) {
 void debugf(string format, ...) {
   #ifdef DEBUG
     va_list args;
+    format += "\n";
     va_start(args, format);
     vprintf(format.c_str(), args);
     va_end(args);
