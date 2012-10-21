@@ -3,18 +3,13 @@
 #include <cstdlib>
 #include <stdio.h>
 
-#include "server.h"
-
+// #include "server.h"
+#include "utils.h"
 using namespace std;
 
-void print(string message) { cout << message << endl; }
-
-void noop() {};
-
-typedef void (*cmdFunc)();
 struct Command {
   string cmd;
-  cmdFunc func;
+  voidFunction func;
   string funcName;
 };
 
