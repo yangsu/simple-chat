@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <stdio.h>
 
-// #include "server.h"
+#include "server.h"
 #include "utils.h"
 using namespace std;
 
@@ -38,7 +38,7 @@ bool execCommand(string input) {
   return false;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
   print("Simple Chat. Type \"help\" for a list of commands");
 
   string input;
