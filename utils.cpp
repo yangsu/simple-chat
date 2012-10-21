@@ -12,6 +12,17 @@ using namespace std;
 // Functions for commands
 void noop(int count, ...) {};
 
+void printArgs(int count, ...) {
+  va_list vl;
+  va_start(vl, count);
+  char** args = va_arg(vl, char**);
+  va_end(vl);
+
+  for (int i = 0; i < count; i++) {
+    printf ("arg %s\n",args[i]);
+  }
+};
+
 void printCommands(Command cmds[], unsigned int size) {
   printf("%u commands: \n", size);
   for (unsigned int i = 0; i < size; ++i) {
