@@ -43,13 +43,20 @@ vector<string> split(const string &s, char delim) {
 }
 
 bool execCommand(Command cmds[], unsigned int size, string input) {
-  for (unsigned int i = 0; i < size; ++i) {
+  if (input.length() > 0) {
     vector<string> args = split(input, ' ');
-    if (args[0].compare(cmds[i].key) == 0) {
-      args.erase(args.begin());
-      cmds[i].func(args.size(), (char**)&(args[0]));
+    string command = (args.size() == 0) ? input : args[0];
+    for (unsigned int i = 0; i < size; ++i) {
+      if (command.compare(cmds[i].key) == 0) {
+        args.erase(args.begin());
+        if (args.size() > 0) {
+          cmds[i].func(args.size(), (char**)&(args[0]));
+        } else {
+          cmds[i].func(args.size());
+        }
 
-      return true;
+        return true;
+      }
     }
   }
   return false;

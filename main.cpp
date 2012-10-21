@@ -6,15 +6,14 @@
 #include "utils.h"
 #include "socket.h"
 #include "chatserver.h"
-// #include "chatclient.h"
+#include "chatclient.h"
 using namespace std;
 
 ChatServer* server;
+ChatClient* client;
 void destroyServer(int count = 0, ...) {
-  if (server != NULL) {
-    delete server;
-    server = NULL;
-  }
+  delete server;
+  server = NULL;
 }
 
 void createServer(int count, ...) {
@@ -33,29 +32,50 @@ void createServer(int count, ...) {
 }
 
 void createClient(int count, ...) {
-  va_list vl;
-  va_start(vl, count);
-  char** args = va_arg(vl, char**);
-  va_end(vl);
+  if (count < 1) {
+    printf("Must specify and ip\n");
+  } else {
+    va_list vl;
+    va_start(vl, count);
+    char** args = va_arg(vl, char**);
+    va_end(vl);
 
-  for (int i = 0; i < count; i++) {
-    printf ("arg %s\n",args[i]);
+    for (int i = 0; i < count; i++) {
+      printf ("arg %s\n",args[i]);
+    }
+
+    // if (client == NULL)
+    client = new ChatClient();
+
+    string ip = string(args[0], strlen(args[0]));
+    printf("ip %s %i\n", ip.c_str(), (int)ip.length());
+
+    if (count == 2) {
+      int port = atoi(args[1]);
+      client->connectToServer(ip, port);
+    } else {
+      client->connectToServer(ip, DEFAULT_PORT);
+    }
   }
+}
 
-  destroyServer();
-  server = new ChatServer();
+void destroyClient(int count = 0, ...) {
+  delete client;
+  client = NULL;
 }
 
 void quit(int count, ...) {
   destroyServer();
+  destroyClient();
 }
 
 unsigned int size;
 // Move function declaration so cmds can be populated properly
 void help(int count, ...);
 Command cmds[] = {
-  {"server", createServer, "start server. can pass in an optional port number argument"},
-  {"help", help, "help"},
+  {"s", createServer, "start server. can pass in an optional port number argument"},
+  {"c", createClient, "start client. must specify and ip address. you can also pass in an optional port number argument"},
+  {"h", help, "help"},
   {"q", quit, "quit"}
 };
 

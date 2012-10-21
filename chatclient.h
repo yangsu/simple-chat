@@ -9,7 +9,7 @@ class ChatClient {
     ChatClient();
     ~ChatClient();
 
-    bool connectToServer(const char* hostname, int port = DEFAULT_PORT);
+    bool connectToServer(string hostname, int port);
     void disconnect();
 
     // void getAvailableClients();
