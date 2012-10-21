@@ -17,7 +17,7 @@ using namespace std;
 
 // Functions for commands
 typedef void (*voidFunction)();
-void noopfunc();
+void noop();
 
 struct Command {
   string key;

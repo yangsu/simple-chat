@@ -6,7 +6,7 @@ ChatServer::ChatServer (int port) {
 }
 
 ChatServer::~ChatServer () {
-  fServer->disconnectAll();
+  fServer->closeAll();
 }
 
 void ChatServer::listen() {

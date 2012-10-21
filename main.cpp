@@ -4,29 +4,30 @@
 #include <stdio.h>
 
 #include "utils.h"
+#include "socket.h"
 #include "chatserver.h"
 // #include "chatclient.h"
 using namespace std;
 
-// Socket n;
-// ChatServer* server;
-// void destroyServer() {
-//   if (server) {
-//     delete server;
-//     server = NULL;
-//   }
-// }
+Socket n;
+ChatServer* server;
+void destroyServer() {
+  if (server) {
+    delete server;
+    server = NULL;
+  }
+}
 void createServer() {
-//   destroyServer();
-//   // server = new ChatServer();
+  destroyServer();
+  server = new ChatServer();
 }
 
 // Move function declaration so cmds can be populated properly
 void help();
 Command cmds[] = {
-  {"server", createServer, "start server. can pass in an optional port number argument"},
+  // {"server", createServer, "start server. can pass in an optional port number argument"},
   {"help", help, "help"},
-  // {"q", noop, "quit"}
+  {"q", noop, "quit"}
 };
 
 void help () { printCommands(cmds); }

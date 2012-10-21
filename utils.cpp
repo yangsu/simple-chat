@@ -9,7 +9,7 @@
 using namespace std;
 
 // Functions for commands
-void noopfunc() {};
+void noop() {};
 void printCommands(Command cmds[]) {
   unsigned int end = sizeof(cmds)/sizeof(Command);
   printf("%u commands: \n", end);
@@ -60,11 +60,11 @@ void print(string message) {
   cout << message << endl;
 }
 
-void debugf(char* format, ...) {
+void debugf(string format, ...) {
   #ifdef DEBUG
     va_list args;
     va_start(args, format);
-    vprintf(format, args);
+    vprintf(format.c_str(), args);
     va_end(args);
   #endif
 }

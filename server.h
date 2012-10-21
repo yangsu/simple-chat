@@ -12,7 +12,6 @@ class Server : public Socket {
     Server(int port = DEFAULT_PORT);
     ~Server();
 
-    void disconnectAll();
     int acceptConnections();
 
   private:

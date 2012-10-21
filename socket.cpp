@@ -3,7 +3,8 @@
 #include <errno.h>
 #include <fcntl.h>
 
-#include "Socket.h"
+#include "utils.h"
+#include "socket.h"
 
 Socket::Socket() {
   fMaxfd = 0;
@@ -70,6 +71,11 @@ int Socket::closeAll() {
 
 void Socket::onFailedConnection(int sockfd) {
   this->close(sockfd);
+}
+
+void Socket::setNonBlocking(int sockfd) {
+  int flags = fcntl(sockfd, F_GETFL);
+  fcntl(sockfd, F_SETFL, flags | O_NONBLOCK);
 }
 
 void Socket::addToMasterSet(int sockfd) {

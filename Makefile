@@ -20,8 +20,8 @@ chatclient.o:	chatclient.h chatclient.cpp client.o
 chatserver.o:	chatserver.h chatserver.cpp server.o
 	g++ -c chatserver.cpp
 
-main: utils.o chatclient.o chatserver.o main.cpp
-	g++ -o main main.cpp utils.o
+main: utils.o chatclient.o chatserver.o socket.o main.cpp
+	g++ -o main main.cpp utils.o socket.o client.o server.o chatclient.o chatserver.o
 
 clean:
 	rm *.o main
