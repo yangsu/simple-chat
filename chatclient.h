@@ -12,6 +12,10 @@ class ChatClient {
     bool connectToServer(const char* hostname, int port = DEFAULT_PORT);
     void disconnect();
 
+    void getAvailableClients();
+    void send();
+    void receive();
+
   private:
     Client fClient;
 };

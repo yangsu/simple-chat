@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #include "utils.h"
-#include "server.h"
+#include "chatserver.h"
 #include "chatclient.h"
 using namespace std;
 
