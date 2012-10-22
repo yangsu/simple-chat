@@ -12,7 +12,7 @@ class ChatClient {
     bool connectToServer(string hostname, int port);
     void disconnect();
 
-    // void getAvailableClients();
+    void getAvailableClients();
     // void send();
     // void receive();
 

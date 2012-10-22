@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <fcntl.h>
-
+#include <algorithm>
 #include "utils.h"
 #include "socket.h"
 
@@ -22,20 +22,20 @@ Socket::~Socket() {
 int Socket::create() {
   int sockfd = socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd < 0) {
-    debugf("ERROR opening socket\n");
+    debugf("ERROR opening socket");
     return -1;
   }
 
   int reuse = 1;
 
   if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int)) < 0) {
-    debugf("error: %s\n", strerror(errno));
+    debugf("error: %s", strerror(errno));
     return -1;
   }
 
   this->setNonBlocking(sockfd);
 
-  debugf("Opened fd:%d\n", sockfd);
+  debugf("Opened fd:%d", sockfd);
   fReady = true;
   return sockfd;
 }
@@ -45,7 +45,7 @@ void Socket::closeFd(int sockfd) {
     return;
 
   close(sockfd);
-  debugf("Closed fd:%d\n", sockfd);
+  debugf("Closed fd:%d", sockfd);
 
   if (FD_ISSET(sockfd, &fMasterSet)) {
     FD_CLR(sockfd, &fMasterSet);
@@ -88,12 +88,12 @@ int Socket::readData(void (*onRead)(int, const void*, size_t)) {
 
   int totalBytesRead = 0;
 
-  char packet[MAX_PACKET_LENGTH];
+  char buffer[MAX_PACKET_LENGTH];
   for (int i = 0; i <= fMaxfd; ++i) {
    if (!FD_ISSET (i, &fMasterSet))
      continue;
 
-   memset(packet, 0, MAX_PACKET_LENGTH);
+   memset(buffer, 0, MAX_PACKET_LENGTH);
 
    int attempts = 0;
    bool failure = false;
@@ -101,7 +101,7 @@ int Socket::readData(void (*onRead)(int, const void*, size_t)) {
    int bytesReadInPacket = 0;
 
    while (fConnected && !failure) {
-     int retval = read(i, packet + bytesReadInPacket,
+     int retval = read(i, buffer + bytesReadInPacket,
                MAX_PACKET_LENGTH - bytesReadInPacket);
 
      ++attempts;
@@ -109,28 +109,28 @@ int Socket::readData(void (*onRead)(int, const void*, size_t)) {
      if (retval < 0) {
        if (errno == EWOULDBLOCK || errno == EAGAIN) {
          if (bytesReadInPacket > 0)
-           continue; //incomplete packet or frame, keep tring
+           continue; //incomplete buffer or frame, keep tring
          else
            break; //nothing to read
        }
-       debugf("Read() failed with error: %s\n", strerror(errno));
+       debugf("Read() failed with error: %s", strerror(errno));
        failure = true;
        break;
      }
 
      if (retval == 0) {
-       debugf("Peer closed connection or connection failed\n");
+       debugf("Peer closed connection or connection failed");
        failure = true;
        break;
      }
 
      bytesReadInPacket += retval;
      if (bytesReadInPacket < MAX_PACKET_LENGTH) {
-       debugf("Read %d/%d\n", bytesReadInPacket, MAX_PACKET_LENGTH);
-       continue; //incomplete packet, keep trying
+       debugf("Read %d/%d", bytesReadInPacket, MAX_PACKET_LENGTH);
+       continue; //incomplete buffer, keep trying
      }
 
-     debugf("read packet from fd:%d in %d tries\n", fSockfd, attempts);
+     debugf("read buffer from fd:%d in %d tries", fSockfd, attempts);
 
      totalBytesRead += bytesReadInPacket;
      bytesReadInPacket = 0;
@@ -144,65 +144,46 @@ int Socket::readData(void (*onRead)(int, const void*, size_t)) {
    }
 
    if (totalBytesRead > 0) {
-     onRead(i, packet, totalBytesRead);
+     onRead(i, buffer, totalBytesRead);
    }
   }
   return totalBytesRead;
 }
 
-int Socket::writeData(void* data, size_t size) {
-  if (size <= 0 || NULL == data || !fConnected || !fReady)
+int Socket::writeData(int fd, void* data, size_t size) {
+  if (size <= 0 || NULL == data || !fConnected || !fReady || (!FD_ISSET (fd, &fMasterSet)))
     return -1;
 
-  int totalBytesWritten = 0;
+  debugf("writing: %s, %u bytes", (char*) data, size);
 
-  char packet[MAX_PACKET_LENGTH];
-  for (int i = 0; i <= fMaxfd; ++i) {
-    if (!FD_ISSET (i, &fMasterSet))
-      continue;
+  int bufferSize = min((int)size, MAX_PACKET_LENGTH);
+  char buffer[bufferSize];
+  memset(buffer, 0, bufferSize);
+  memcpy(buffer, (char*)data, bufferSize);
+  bool failure = false;
 
-    unsigned int bytesWrittenInPacket = 0;
-    int attempts = 0;
-    bool failure = false;
-    while (bytesWrittenInPacket < size && fConnected && !failure) {
-      memset(packet, 0, MAX_PACKET_LENGTH);
-      memcpy(packet, (char*)data, size);
+  int retval = write(fd, buffer, bufferSize);
 
-      int retval = write(i, packet + bytesWrittenInPacket,
-        MAX_PACKET_LENGTH - bytesWrittenInPacket);
-      attempts++;
-
-      if (retval < 0) {
-        if (errno == EPIPE) {
-          debugf("broken pipe, client closed connection");
-          failure = true;
-          break;
-        } else if (errno == EWOULDBLOCK || errno == EAGAIN) {
-          if (bytesWrittenInPacket > 0)
-            continue; //incomplete packet or frame, keep trying
-          else
-            break; //client not available, skip current transfer
-        } else {
-          debugf("write(%d) failed with error:%s\n", i, strerror(errno));
-
-          failure = true;
-          break;
-        }
-      }
-
-      bytesWrittenInPacket += retval;
-      if (bytesWrittenInPacket < MAX_PACKET_LENGTH)
-        continue; //incomplete packet, keep trying
-
-      debugf("wrote packet to fd:%d in %d tries\n", i, attempts);
-
-      totalBytesWritten = bytesWrittenInPacket;
-      bytesWrittenInPacket = 0;
-      attempts = 0;
+  if (retval < 0) {
+    if (errno == EPIPE) {
+      debugf("broken pipe, client closed connection");
+      failure = true;
+    } else if (errno == EWOULDBLOCK || errno == EAGAIN) {
+      // if (bytesWrittenInPacket > 0)
+      //   continue; //incomplete buffer or frame, keep trying
+      // else
+      //   break; //client not available, skip current transfer
+    } else {
+      debugf("write(%d) failed with error:%s", fd, strerror(errno));
+      failure = true;
     }
-
-    if (failure)
-      this->onFailedConnection(i);
   }
-  return totalBytesWritten;
+
+  if (failure) {
+    this->onFailedConnection(fd);
+    return -1;
+  }
+
+  debugf("wrote %d bytes to fd:%d", retval, fd);
+  return retval;
 }

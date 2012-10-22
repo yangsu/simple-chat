@@ -19,7 +19,7 @@ Client::Client(const char* hostname, int port) {
         fServerAddr.sin_port = htons(port);
     }
     else {
-        debugf("ERROR, no such host\n");
+        debugf("ERROR, no such host");
         fReady = false;
     }
 }
@@ -40,14 +40,15 @@ int Client::connectToServer() {
     int conn = connect(fSockfd, (sockaddr*)&fServerAddr, sizeof(fServerAddr));
     if (conn < 0) {
         if (errno == EINPROGRESS || errno == EALREADY)
-            return conn;
-        if (errno != EISCONN) {
-            debugf("error: %s\n", strerror(errno));
+            debugf("error: %s", strerror(errno));
+            // return conn;
+        else if (errno != EISCONN) {
+            debugf("error: %s", strerror(errno));
             this->onFailedConnection(fSockfd);
             return conn;
         }
     }
     fConnected = true;
-    debugf("Succesfully reached server\n");
+    debugf("Succesfully reached server");
     return 0;
 }

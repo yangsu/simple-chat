@@ -28,3 +28,9 @@ void ChatClient::disconnect() {
     delete this->fClient;
   }
 }
+
+void ChatClient::getAvailableClients() {
+  // if (this->fClient != NULL) {
+  this->fClient->writeData(3, (void*)"abc", 3);
+  // }
+}

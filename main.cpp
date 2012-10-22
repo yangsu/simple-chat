@@ -29,6 +29,7 @@ void createServer(int count, ...) {
   } else {
     server = new ChatServer();
   }
+  server->listen();
 }
 
 void createClient(int count, ...) {
@@ -44,8 +45,8 @@ void createClient(int count, ...) {
       printf ("arg %s\n",args[i]);
     }
 
-    // if (client == NULL)
-    client = new ChatClient();
+    if (client == NULL)
+      client = new ChatClient();
 
     string ip = string(args[0], strlen(args[0]));
     printf("ip %s %i\n", ip.c_str(), (int)ip.length());
@@ -57,6 +58,11 @@ void createClient(int count, ...) {
       client->connectToServer(ip, DEFAULT_PORT);
     }
   }
+}
+
+void getAvailableClients(int count = 0, ...) {
+  if (client != NULL)
+    client->getAvailableClients();
 }
 
 void destroyClient(int count = 0, ...) {
@@ -75,6 +81,7 @@ void help(int count, ...);
 Command cmds[] = {
   {"s", createServer, "start server. can pass in an optional port number argument"},
   {"c", createClient, "start client. must specify and ip address. you can also pass in an optional port number argument"},
+  {"cli", getAvailableClients, "get clients"},
   {"h", help, "help"},
   {"q", quit, "quit"}
 };
@@ -85,7 +92,9 @@ void processInput(string input) {
   if (execCommand(cmds, size, input)) {
 
   } else {
-
+    if (client != NULL) {
+      client->getAvailableClients();
+    }
   }
 }
 

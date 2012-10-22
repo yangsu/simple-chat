@@ -10,7 +10,7 @@ class Socket {
 
     bool isConnected() { return fReady && fConnected; }
 
-    int writeData(void* data, size_t size);
+    int writeData(int fd, void* data, size_t size);
     int readData(void (*onRead)(int cid, const void* data, size_t size));
 
     /**
