@@ -7,6 +7,7 @@
 #define HEADER_LENGTH 50
 #define MESSAGE_LENGTH MAX_PACKET_LENGTH-HEADER_LENGTH
 #define CONNECTION_TIMEOUT 10
+#define POLLING_INTERVAL 50
 
 enum MessageType {
   kClientList,

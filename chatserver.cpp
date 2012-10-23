@@ -21,5 +21,6 @@ void ChatServer::listen() {
   while(true) {
     fServer->acceptConnections();
     fServer->readAll(readData);
+    sleep(POLLING_INTERVAL);
   }
 }
