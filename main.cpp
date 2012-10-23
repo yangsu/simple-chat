@@ -14,6 +14,11 @@ using namespace std;
 
 vector<pthread_t*> threads;
 bool terminateServer = false;
+bool terminateClient = false;
+
+/**
+ * Server
+ */
 
 void* server(void* port) {
   int pn = (long)port;
@@ -39,10 +44,31 @@ void createServer(int count, ...) {
   pthread_create(p, NULL, server, (void*)port);
 }
 
+/**
+ * Client
+ */
 ChatClient* client;
+void* clientf(void* data) {
+  IPAddr* i = (IPAddr*)data;
+
+  if (client == NULL)
+    client = new ChatClient();
+
+  client->connectToServer(i->ip, i->port);
+  delete i;
+
+  while(!terminateClient) {
+    client->read();
+  }
+
+  delete client;
+
+  debugf("terminating client");
+}
+
 void createClient(int count, ...) {
   if (count < 1) {
-    printf("Must specify and ip\n");
+    printf("Must specify an ip\n");
   } else {
     va_list vl;
     va_start(vl, count);
@@ -53,18 +79,13 @@ void createClient(int count, ...) {
       printf ("arg %s\n",args[i]);
     }
 
-    if (client == NULL)
-      client = new ChatClient();
 
     string ip = string(args[0], strlen(args[0]));
-    printf("ip %s %i\n", ip.c_str(), (int)ip.length());
-
-    if (count == 2) {
-      int port = atoi(args[1]);
-      client->connectToServer(ip, port);
-    } else {
-      client->connectToServer(ip, DEFAULT_PORT);
-    }
+    int port = (count == 2) ? atoi(args[1]) : DEFAULT_PORT;
+    IPAddr* i = new IPAddr(ip, port);
+    pthread_t* p = new pthread_t;
+    threads.push_back(p);
+    pthread_create(p, NULL, clientf, (void*)i);
   }
 }
 
@@ -80,6 +101,7 @@ void destroyClient(int count = 0, ...) {
 
 void quit(int count, ...) {
   terminateServer = true;
+  terminateClient = true;
   for (int i = 0; i < threads.size(); ++i) {
     debugf("waiting for thread %d", i);
     pthread_join(*(threads[i]), NULL);

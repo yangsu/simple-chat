@@ -6,6 +6,13 @@
 #include "utils.h"
 #include "socket.h"
 
+void printData(int cli, header h, const void* data) {
+  string s = string((char*)data, h.size);
+  if (h.size) {
+    debugf("read %u bytes from %d %s", h.size, cli, s.c_str());
+  }
+}
+
 Socket::Socket() {
   fMaxfd = 0;
   FD_ZERO(&fMasterSet);

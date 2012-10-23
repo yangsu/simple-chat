@@ -21,6 +21,15 @@ typedef void (*voidFunction)(int count, ...);
 void noop(int count, ...);
 void printArgs(int count, ...);
 
+struct IPAddr {
+  IPAddr(string i, int p) {
+    this->ip = i;
+    this->port = p;
+  }
+  string ip;
+  int port;
+};
+
 struct Command {
   string key;
   voidFunction func;

@@ -13,7 +13,7 @@ class ChatClient {
     void disconnect();
 
     void getAvailableClients();
-    // void send();
+    void read();
     // void receive();
 
   private:

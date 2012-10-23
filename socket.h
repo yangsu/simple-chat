@@ -30,6 +30,8 @@ struct header {
   }
 };
 
+void printData(int cli, header h, const void* data);
+
 class Socket {
   public:
     Socket();
