@@ -18,9 +18,6 @@ void readData(int cli, header h, const void* data) {
 }
 
 void ChatServer::listen() {
-  while(true) {
-    fServer->acceptConnections();
-    fServer->readAll(readData);
-    sleep(POLLING_INTERVAL);
-  }
+  fServer->acceptConnections();
+  fServer->readAll(readData);
 }

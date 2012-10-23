@@ -14,6 +14,8 @@
 
 using namespace std;
 
+typedef void* (*voidStarFunction)(void*);
+
 // Functions for commands
 typedef void (*voidFunction)(int count, ...);
 void noop(int count, ...);

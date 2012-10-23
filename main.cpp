@@ -2,6 +2,9 @@
 #include <string>
 #include <cstdlib>
 #include <stdio.h>
+#include <pthread.h>
+#include <vector>
+#include <map>
 
 #include "utils.h"
 #include "socket.h"
@@ -9,11 +12,18 @@
 #include "chatclient.h"
 using namespace std;
 
-ChatServer* server;
-ChatClient* client;
-void destroyServer(int count = 0, ...) {
-  delete server;
-  server = NULL;
+vector<pthread_t*> threads;
+bool terminateServer = false;
+
+void* server(void* port) {
+  int pn = (long)port;
+
+  debugf("creating server with port %d", port);
+  ChatServer server(pn);
+  while (!terminateServer) {
+    server.listen();
+  }
+  debugf("Server Thread Terminated");
 }
 
 void createServer(int count, ...) {
@@ -22,16 +32,14 @@ void createServer(int count, ...) {
   char** args = va_arg(vl, char**);
   va_end(vl);
 
-  destroyServer();
-  if (count) {
-    int port = atoi(*args);
-    server = new ChatServer(port);
-  } else {
-    server = new ChatServer();
-  }
-  server->listen();
+  int port = (count > 0) ? atoi(*args) : DEFAULT_PORT;
+
+  pthread_t* p = new pthread_t;
+  threads.push_back(p);
+  pthread_create(p, NULL, server, (void*)port);
 }
 
+ChatClient* client;
 void createClient(int count, ...) {
   if (count < 1) {
     printf("Must specify and ip\n");
@@ -71,8 +79,12 @@ void destroyClient(int count = 0, ...) {
 }
 
 void quit(int count, ...) {
-  destroyServer();
-  destroyClient();
+  terminateServer = true;
+  for (int i = 0; i < threads.size(); ++i) {
+    debugf("waiting for thread %d", i);
+    pthread_join(*(threads[i]), NULL);
+    delete threads[i];
+  }
 }
 
 unsigned int size;
