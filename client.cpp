@@ -39,14 +39,28 @@ int Client::connectToServer() {
 
     int conn = connect(fSockfd, (sockaddr*)&fServerAddr, sizeof(fServerAddr));
     if (conn < 0) {
-        if (errno == EINPROGRESS || errno == EALREADY)
-            debugf("error: %s", strerror(errno));
-            // return conn;
-        else if (errno != EISCONN) {
-            debugf("error: %s", strerror(errno));
-            this->onFailedConnection(fSockfd);
-            return conn;
+      if (errno == EINPROGRESS || errno == EALREADY) {
+        debugf("in progress");
+        fd_set rset, wset;
+        FD_ZERO(&rset);
+        FD_SET(fSockfd, &rset);
+        wset = rset;
+        timeval timeout;
+        timeout.tv_sec = CONNECTION_TIMEOUT;
+        timeout.tv_usec = 0;
+        int sel = select(fSockfd + 1, &rset, &wset, NULL, &timeout);
+        if (sel < 0) {
+          debugf("select() failed with error %s", strerror(errno));
+          return -1;
+        } else if (sel == 0) {
+          errno = ETIMEDOUT;
+          return -1;
         }
+      } else if (errno != EISCONN) {
+        debugf("error: %s", strerror(errno));
+        this->onFailedConnection(fSockfd);
+        return conn;
+      }
     }
     fConnected = true;
     debugf("Succesfully reached server");

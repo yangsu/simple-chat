@@ -3,6 +3,32 @@
 
 #include "utils.h"
 
+#define MAX_PACKET_LENGTH 1024
+#define HEADER_LENGTH 50
+#define MESSAGE_LENGTH MAX_PACKET_LENGTH-HEADER_LENGTH
+#define CONNECTION_TIMEOUT 10
+
+enum MessageType {
+  kClientList,
+  kChatMessage,
+  kUnkown
+};
+struct header {
+  int targetId;
+  MessageType type;
+  size_t size;
+  header() {
+    this->targetId = -1;
+    this->type = kUnkown;
+    this->size = 0;
+  }
+  header(int id, MessageType t, size_t s) {
+    this->targetId = id;
+    this->type = t;
+    this->size = s;
+  }
+};
+
 class Socket {
   public:
     Socket();
@@ -10,8 +36,9 @@ class Socket {
 
     bool isConnected() { return fReady && fConnected; }
 
-    int writeData(int fd, void* data, size_t size);
-    int readData(void (*onRead)(int cid, const void* data, size_t size));
+    int writeData(int fd, header h, void* data);
+    int readData(int fd, void (*onRead)(int cid, header h, const void* data));
+    int readAll(void (*onRead)(int cid, header h, const void* data));
 
     /**
      * Close all open sockets
@@ -19,9 +46,6 @@ class Socket {
     int closeAll();
 
   protected:
-    struct header {
-      int type;
-    };
     /**
     * Create a socket and return its file descriptor. Returns -1 on failure
     */

@@ -1,3 +1,4 @@
+#include "socket.h"
 #include "server.h"
 #include "chatserver.h"
 
@@ -9,14 +10,16 @@ ChatServer::~ChatServer () {
   delete fServer;
 }
 
-void readData(int cli, const void* data, size_t size) {
-  string s = string((char*)data, size);
-  debugf("%s", s.c_str());
+void readData(int cli, header h, const void* data) {
+  string s = string((char*)data, h.size);
+  if (h.size) {
+    debugf("read %u bytes from %d %s", h.size, cli, s.c_str());
+  }
 }
 
 void ChatServer::listen() {
   while(true) {
     fServer->acceptConnections();
-    fServer->readData(readData);
+    fServer->readAll(readData);
   }
 }

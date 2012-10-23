@@ -82,108 +82,138 @@ void Socket::addToMasterSet(int sockfd) {
     fMaxfd = sockfd;
 }
 
-int Socket::readData(void (*onRead)(int, const void*, size_t)) {
-  if (!fConnected || !fReady || NULL == onRead)
-    return -1;
+int readFromSocket(int fd, void* dest, int size) {
+  char buffer[size];
+  memset(buffer, 0, size);
 
-  int totalBytesRead = 0;
-
-  char buffer[MAX_PACKET_LENGTH];
-  for (int i = 0; i <= fMaxfd; ++i) {
-   if (!FD_ISSET (i, &fMasterSet))
-     continue;
-
-   memset(buffer, 0, MAX_PACKET_LENGTH);
-
-   int attempts = 0;
-   bool failure = false;
-
-   int bytesReadInPacket = 0;
-
-   while (fConnected && !failure) {
-     int retval = read(i, buffer + bytesReadInPacket,
-               MAX_PACKET_LENGTH - bytesReadInPacket);
-
-     ++attempts;
-
-     if (retval < 0) {
-       if (errno == EWOULDBLOCK || errno == EAGAIN) {
-         if (bytesReadInPacket > 0)
-           continue; //incomplete buffer or frame, keep tring
-         else
-           break; //nothing to read
-       }
-       debugf("Read() failed with error: %s", strerror(errno));
-       failure = true;
-       break;
-     }
-
-     if (retval == 0) {
-       debugf("Peer closed connection or connection failed");
-       failure = true;
-       break;
-     }
-
-     bytesReadInPacket += retval;
-     if (bytesReadInPacket < MAX_PACKET_LENGTH) {
-       debugf("Read %d/%d", bytesReadInPacket, MAX_PACKET_LENGTH);
-       continue; //incomplete buffer, keep trying
-     }
-
-     debugf("read buffer from fd:%d in %d tries", fSockfd, attempts);
-
-     totalBytesRead += bytesReadInPacket;
-     bytesReadInPacket = 0;
-     attempts = 0;
-   }
-
-   if (failure) {
-     onRead(i, NULL, 0);
-     this->onFailedConnection(i);
-     continue;
-   }
-
-   if (totalBytesRead > 0) {
-     onRead(i, buffer, totalBytesRead);
-   }
-  }
-  return totalBytesRead;
-}
-
-int Socket::writeData(int fd, void* data, size_t size) {
-  if (size <= 0 || NULL == data || !fConnected || !fReady || (!FD_ISSET (fd, &fMasterSet)))
-    return -1;
-
-  debugf("writing: %s, %u bytes", (char*) data, size);
-
-  int bufferSize = min((int)size, MAX_PACKET_LENGTH);
-  char buffer[bufferSize];
-  memset(buffer, 0, bufferSize);
-  memcpy(buffer, (char*)data, bufferSize);
-  bool failure = false;
-
-  int retval = write(fd, buffer, bufferSize);
-
-  if (retval < 0) {
-    if (errno == EPIPE) {
-      debugf("broken pipe, client closed connection");
-      failure = true;
-    } else if (errno == EWOULDBLOCK || errno == EAGAIN) {
-      // if (bytesWrittenInPacket > 0)
-      //   continue; //incomplete buffer or frame, keep trying
-      // else
-      //   break; //client not available, skip current transfer
+  int retval = 0;
+  int bytesRead = 0;
+  while (bytesRead < size) {
+    retval = read(fd, buffer + bytesRead, size - bytesRead);
+    if (retval < 0) {
+      if (errno == EWOULDBLOCK || errno == EAGAIN) {
+        if (bytesRead > 0)
+          return bytesRead; //incomplete buffer or frame, keep tring
+        else
+          return 0; //nothing to read
+      } else {
+        debugf("Read() failed with error: %s", strerror(errno));
+        return -1;
+      }
+    } else if (retval > 0) {
+      debugf("read %u bytes from fd:%d", retval, fd);
+      bytesRead += retval;
     } else {
-      debugf("write(%d) failed with error:%s", fd, strerror(errno));
-      failure = true;
+      debugf("Peer closed connection or connection failed");
+      return -1;
     }
   }
+  memcpy(dest, buffer, size);
+  return size;
+}
 
-  if (failure) {
+int writeToSocket(int fd, char* buffer, int size) {
+  int retval = 0, bytesWritten = 0;
+  while (bytesWritten < size) {
+    retval = write(fd, buffer + bytesWritten, size - bytesWritten);
+    if (retval < 0) {
+      if (errno == EPIPE) {
+        debugf("broken pipe, client closed connection");
+        return -1;
+      } else if (errno == EWOULDBLOCK || errno == EAGAIN) {
+        if (bytesWritten > 0)
+          return bytesWritten; //incomplete buffer or frame, keep trying
+        else
+          return 0; //client not available, skip current transfer
+        debugf("write(%d) failed with error:%s", fd, strerror(errno));
+        return -1;
+      } else {
+        debugf("write(%d) failed with error:%s", fd, strerror(errno));
+        return -1;
+      }
+    }
+    bytesWritten += retval;
+  }
+  return bytesWritten;
+}
+
+int readHeader(int fd, header* h) {
+  char headerBuffer[HEADER_LENGTH];
+  memset(&headerBuffer, 0, HEADER_LENGTH);
+
+  int bytesRead = readFromSocket(fd, headerBuffer, HEADER_LENGTH);
+  if (bytesRead == HEADER_LENGTH) {
+    memcpy(&h->targetId, headerBuffer, sizeof(int));
+    memcpy(&h->type, headerBuffer + sizeof(int), sizeof(MessageType));
+    memcpy(&h->size, headerBuffer + sizeof(int) + sizeof(MessageType), sizeof(size_t));
+    return bytesRead;
+  } else if (bytesRead >= 0) {
+    return bytesRead;
+  } else {
+    return -1;
+  }
+}
+
+int Socket::readData(int fd, void (*onRead)(int, header, const void*)) {
+  if (!fConnected || !fReady || NULL == onRead || !FD_ISSET(fd, &fMasterSet))
+    return -1;
+
+  header h;
+  if (readHeader(fd, &h) < 0) {
     this->onFailedConnection(fd);
     return -1;
   }
 
-  debugf("wrote %d bytes to fd:%d", retval, fd);
-  return retval;
+  int bufferSize = min((int)h.size, MESSAGE_LENGTH);
+  char buffer[bufferSize];
+  memset(buffer, 0, bufferSize);
+
+  int bytesRead = readFromSocket(fd, &buffer, bufferSize);
+  if (bytesRead == bufferSize) {
+    onRead(fd, h, buffer);
+    return bytesRead;
+  } else {
+    this->onFailedConnection(fd);
+    return -1;
+  }
+}
+
+int Socket::readAll(void (*onRead)(int, header, const void*)) {
+  int total = 0;
+  for (int i = 0; i <= fMaxfd; ++i) {
+    if (FD_ISSET(i, &fMasterSet)) {
+      total += this->readData(i, onRead);
+    }
+  }
+  return total;
+}
+
+int Socket::writeData(int fd, header h, void* data) {
+  if (h.size <= 0 || NULL == data || !fConnected || !fReady || (!FD_ISSET (fd, &fMasterSet)))
+    return -1;
+
+  debugf("writing: %s, %u bytes", (char*) data, h.size);
+
+  int messageSize = min((int)h.size, MESSAGE_LENGTH);
+  int bufferSize = messageSize + HEADER_LENGTH;
+  char buffer[bufferSize];
+  memset(buffer, 0, bufferSize);
+
+  memcpy(&buffer, &(h.targetId), sizeof(int));
+  memcpy(&buffer + sizeof(int), &(h.type), sizeof(MessageType));
+  memcpy(&buffer + sizeof(int) + sizeof(MessageType), &(h.size), sizeof(size_t));
+
+  memcpy(buffer + HEADER_LENGTH, (char*)data, messageSize);
+
+  int bytesWritten = writeToSocket(fd, buffer, bufferSize);
+
+  if (bytesWritten == bufferSize) {
+    debugf("wrote %d bytes to fd:%d", bytesWritten, fd);
+    return bytesWritten;
+  } else if (bytesWritten >= 0) {
+    return bytesWritten;
+  } else {
+    this->onFailedConnection(fd);
+    return -1;
+  }
 }

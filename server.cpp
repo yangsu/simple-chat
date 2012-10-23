@@ -40,7 +40,7 @@ int Server::acceptConnections() {
   timeout.tv_usec = 0;
   int sel = select(fSockfd + 1, &workingSet, NULL, NULL, &timeout);
   if (sel < 0) {
-    // debugf("select() failed with error %s", strerror(errno));
+    debugf("select() failed with error %s", strerror(errno));
     return -1;
   } else if (sel == 0) {
     // debugf("select() timed out");

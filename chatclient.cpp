@@ -31,6 +31,6 @@ void ChatClient::disconnect() {
 
 void ChatClient::getAvailableClients() {
   // if (this->fClient != NULL) {
-  this->fClient->writeData(3, (void*)"abc", 3);
+  this->fClient->writeData(3, header(0, kClientList, 3), (void*)"abc");
   // }
 }
