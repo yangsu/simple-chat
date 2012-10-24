@@ -149,9 +149,10 @@ int readHeader(int fd, header* h) {
   int bytesRead = readFromSocket(fd, headerBuffer, HEADER_LENGTH);
   if (bytesRead == HEADER_LENGTH) {
     memcpy(&(h->targetId), headerBuffer, sizeof(int));
-    memcpy(&(h->type), headerBuffer + sizeof(int), sizeof(MessageType));
-    memcpy(&(h->size), headerBuffer + sizeof(int) + sizeof(MessageType), sizeof(int));
-    debugf("read header(%d, %d, %d)", h->targetId, h->type, h->size);
+    memcpy(&(h->sourceId), headerBuffer + sizeof(int), sizeof(int));
+    memcpy(&(h->type), headerBuffer + 2*sizeof(int), sizeof(MessageType));
+    memcpy(&(h->size), headerBuffer + 2*sizeof(int) + sizeof(MessageType), sizeof(int));
+    debugf("read header(%d, %d, %d, %d)", h->targetId, h->sourceId, h->type, h->size);
     return bytesRead;
   } else if (bytesRead >= 0) {
     return bytesRead;
@@ -207,10 +208,11 @@ int Socket::writeDataToFd(int fd, header h, void* data) {
   memset(buffer, 0, bufferSize);
 
   memcpy(buffer, &(h.targetId), sizeof(int));
-  memcpy(buffer + sizeof(int), &(h.type), sizeof(MessageType));
-  memcpy(buffer + sizeof(int) + sizeof(MessageType), &(h.size), sizeof(int));
+  memcpy(buffer + sizeof(int), &(h.sourceId), sizeof(int));
+  memcpy(buffer + 2*sizeof(int), &(h.type), sizeof(MessageType));
+  memcpy(buffer + 2*sizeof(int) + sizeof(MessageType), &(h.size), sizeof(int));
 
-  debugf("wrote header(%d, %d, %d)", h.targetId, h.type, h.size);
+  debugf("wrote header(%d, %d, %d, %d)", h.targetId, h.sourceId, h.type, h.size);
 
   memcpy(buffer + HEADER_LENGTH, (char*)data, messageSize);
   buffer[HEADER_LENGTH + messageSize] = '\0';

@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#define DEBUG
+// #define DEBUG
 #define DEFAULT_PORT 15555
 #define MAX_CLIENTS 100
 

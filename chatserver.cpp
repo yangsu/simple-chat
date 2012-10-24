@@ -24,12 +24,11 @@ void processServerData(int cli, header h, const void* data) {
   if (h.size > 0) {
     if (h.type == kClientListRequest) {
       string clients = tempServer->getClients(cli);
-      header h2(0, kClientListResponse, clients.length());
+      header h2(0, 0, kClientListResponse, clients.length());
       tempServer->fServer->writeDataToFd(cli, h2, (void*) clients.c_str());
-    } else if (h.type == kClientConnectRequest) {
+    } else {
       int targetFd = tempServer->getClientFd(h.targetId);
-      header h2(h.targetId, kClientConnectRequest, h.size);
-      tempServer->fServer->writeDataToFd(targetFd, h2, (void*) data);
+      tempServer->fServer->writeDataToFd(targetFd, h, (void*) data);
     }
   }
 }
@@ -61,13 +60,13 @@ void ChatServer::listen() {
   int newfd = fServer->acceptConnections();
   if (newfd > 0) {
     char namebuffer[50];
-    int id = fUniqueID++;
+    int id = ++fUniqueID;
     int length = sprintf(namebuffer, "User %d", id);
     debugf("[%s] %d bytes", namebuffer, length);
 
     ClientInfo* i = new ClientInfo(newfd, string(namebuffer, length));
     fClientMap.insert(pair<int, ClientInfo*>(id, i));
-    fServer->writeDataToFd(newfd, header(id, kLogin,length), (void*) namebuffer);
+    fServer->writeDataToFd(newfd, header(id, 0, kLogin,length), (void*) namebuffer);
   }
 
   tempServer = this;

@@ -3,7 +3,8 @@
 
 ChatClient::ChatClient () {
   debugf("created client");
-  this->fClient = NULL;
+  fClient = NULL;
+  fConnecting = false;
 }
 
 ChatClient::~ChatClient () {
@@ -36,7 +37,7 @@ void processPacket(int cli, header h, const void* data) {
     if (h.type == kLogin) {
       tempClient->setName((const char*)data, h.size);
       tempClient->setId(h.targetId);
-      printf("Welcome %s! Your id is %d", (char*)data, tempClient->fId);
+      printf("Welcome %s! Your id is %d\n", (char*)data, tempClient->fId);
     } else if (h.type == kClientListResponse) {
       vector<string> clients = split(string((char*)data, h.size), '|');
       printf("%d other clients are connected:\n", (int)clients.size());
@@ -44,7 +45,19 @@ void processPacket(int cli, header h, const void* data) {
         printf("\t%s\n", clients[i].c_str());
       }
     } else if (h.type == kClientConnectRequest) {
+      tempClient->fConnecting = true;
       printf("%s (Y/N)\n", (char*)data);
+    } else if (h.type == kClientConnectReject) {
+      tempClient->fConnecting = false;
+      tempClient->fConnected = false;
+      printf("%s\n", (char*)data);
+    } else if (h.type == kClientConnectAccept) {
+      tempClient->fConnecting = false;
+      tempClient->fConnected = true;
+      tempClient->fTargetId = h.sourceId;
+      printf("%s. Type messages and press enter to send\n", (char*)data);
+    } else if (h.type == kChatMessage) {
+      printf("[User %d]:%s\n", h.sourceId, (char*)data);
     }
   }
 }
@@ -64,7 +77,7 @@ void ChatClient::read() {
 
 void ChatClient::getAvailableClients() {
   if (this->fClient != NULL) {
-    this->fClient->writeData(header(0, kClientListRequest, 7), (void*)"request");
+    this->fClient->writeData(header(0, 0, kClientListRequest, 7), (void*)"request");
   }
 }
 
@@ -72,6 +85,31 @@ void ChatClient::connectToClient(int id) {
   if (this->fClient != NULL) {
     string msg(this->fName);
     msg += " would like to chat with you!";
-    this->fClient->writeData(header(id, kClientConnectRequest, msg.length()), (void*)msg.c_str());
+    this->fClient->writeData(header(id, this->fId, kClientConnectRequest, msg.length()), (void*)msg.c_str());
+  }
+}
+
+void ChatClient::acceptConnection(int id) {
+  if (this->fClient != NULL) {
+    string msg(this->fName);
+    msg += " has accepted your request to chat!";
+    this->fClient->writeData(header(id, this->fId, kClientConnectAccept, msg.length()), (void*)msg.c_str());
+    this->fConnected = true;
+    this->fTargetId = id;
+  }
+}
+
+void ChatClient::rejectConnection(int id) {
+  if (this->fClient != NULL) {
+    string msg(this->fName);
+    msg += " has rejected your request to chat!";
+    this->fConnected = false;
+    this->fClient->writeData(header(id, this->fId, kClientConnectReject, msg.length()), (void*)msg.c_str());
+  }
+}
+void ChatClient::sendMessage(string msg) {
+  if (this->fClient != NULL && this->fConnected) {
+    header h(this->fTargetId, this->fId, kChatMessage, msg.length());
+    this->fClient->writeData(h, (void*)msg.c_str());
   }
 }

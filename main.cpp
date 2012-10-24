@@ -109,6 +109,42 @@ void connectToClient(int count = 0, ...) {
   }
 }
 
+void yes(int count = 0, ...) {
+  if (client == NULL)
+    printf("Must be create a client to issue this command\n");
+  else if (count < 1)
+    printf("Must specify an user id\n");
+  else if (!client->fConnecting)
+    printf("Must have received a request to issue this command\n");
+  else {
+    va_list vl;
+    va_start(vl, count);
+    char** args = va_arg(vl, char**);
+    va_end(vl);
+    int id = atoi(args[1]);
+    debugf("accepting request from User %d", id);
+    client->acceptConnection(id);
+  }
+}
+
+void no(int count = 0, ...) {
+  if (client == NULL)
+    printf("Must be create a client to issue this command\n");
+  else if (count < 1)
+    printf("Must specify an user id\n");
+  else if (!client->fConnecting)
+    printf("Must have received a request to issue this command\n");
+  else {
+    va_list vl;
+    va_start(vl, count);
+    char** args = va_arg(vl, char**);
+    va_end(vl);
+    int id = atoi(args[1]);
+    debugf("rejecting request from User %d", id);
+    client->rejectConnection(id);
+  }
+}
+
 void destroyClient(int count = 0, ...) {
   delete client;
   client = NULL;
@@ -131,7 +167,9 @@ Command cmds[] = {
   {"s", createServer, "start server. can pass in an optional port number argument"},
   {"c", createClient, "start client. must specify and ip address. you can also pass in an optional port number argument"},
   {"cli", getAvailableClients, "get clients"},
-  {"connect", connectToClient, "connect to another client"},
+  {"connect", connectToClient, "connect to another client. must specify an id"},
+  {"y", yes, "Accept request. must specify an id"},
+  {"n", no, "Reject request. must specify an id"},
   {"h", help, "help"},
   {"q", quit, "quit"}
 };
@@ -141,7 +179,8 @@ void help (int count, ...) { printCommands(cmds, size); }
 void processInput(string input) {
   if (execCommand(cmds, size, input)) {
 
-  } else {
+  } else if (client != NULL && client->fConnected) {
+    client->sendMessage(input);
   }
 }
 

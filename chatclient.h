@@ -12,14 +12,22 @@ class ChatClient {
 
     string fName;
     int fId;
+    int fTargetId;
+    bool fConnecting;
+    bool fConnected;
 
     bool connectToServer(string hostname, int port);
     void disconnect();
 
     void getAvailableClients();
     void connectToClient(int id);
+    void acceptConnection(int id);
+    void rejectConnection(int id);
+
+    void sendMessage(string msg);
+
     void read();
-    // void receive();
+
     void setName(const char* name, size_t size);
     void setId(int id);
 

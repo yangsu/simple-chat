@@ -26,15 +26,18 @@ enum MessageType {
 };
 struct header {
   int targetId;
+  int sourceId;
   MessageType type;
   int size;
   header() {
     this->targetId = -1;
+    this->sourceId = -1;
     this->type = kUnkown;
     this->size = 0;
   }
-  header(int id, MessageType t, int s) {
-    this->targetId = id;
+  header(int tid, int sid, MessageType t, int s) {
+    this->targetId = tid;
+    this->sourceId = sid;
     this->type = t;
     this->size = s;
   }
