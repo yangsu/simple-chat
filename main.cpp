@@ -109,6 +109,23 @@ void connectToClient(int count = 0, ...) {
   }
 }
 
+void p2pConnect(int count = 0, ...) {
+  if (count < 1) {
+    printf("Must specify an user id\n");
+  } else if (client == NULL) {
+    printf("Must be create a client to issue this command\n");
+  } else {
+    va_list vl;
+    va_start(vl, count);
+    char** args = va_arg(vl, char**);
+    va_end(vl);
+
+    int id = atoi(args[1]);
+    debugf("p2p to User %d", id);
+    client->p2pConnect(id);
+  }
+}
+
 void yes(int count = 0, ...) {
   if (client == NULL)
     printf("Must be create a client to issue this command\n");
@@ -179,6 +196,7 @@ Command cmds[] = {
   {"c", createClient, "start client. must specify and ip address. you can also pass in an optional port number argument"},
   {"cli", getAvailableClients, "get clients"},
   {"connect", connectToClient, "connect to another client. must specify an id"},
+  {"p2p", p2pConnect, "connect to another client using a p2p connection. must specify an id"},
   {"disconnect", disconnect, "disconnect from the current chat"},
   {"y", yes, "Accept request. must specify an id"},
   {"n", no, "Reject request. must specify an id"},
@@ -199,6 +217,7 @@ void processInput(string input) {
 }
 
 int main(int argc, char *argv[]) {
+  srand ( time(NULL) );
   size = sizeof(cmds)/sizeof(Command);
   print("Simple Chat. Type \"help\" for a list of commands");
 

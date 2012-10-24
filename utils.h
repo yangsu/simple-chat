@@ -50,7 +50,7 @@ struct ClientInfo {
   int port;
 };
 
-
+string ipstring(string ip, int port);
 
 struct Command {
   string key;

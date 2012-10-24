@@ -21,8 +21,15 @@ enum MessageType {
   kClientConnectAccept,
   kClientConnectReject,
   kClientDisconnect,
-
   kChatMessage,
+
+  kP2PIPRequest,
+  kP2PIPResponse,
+  kP2PConnectRequest,
+  kP2PConnectAccept,
+  kP2PConnectReject,
+  kP2PDisconnect,
+  kP2PMessage,
 
   kUnkown
 };

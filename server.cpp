@@ -35,6 +35,15 @@ int Server::readAll(void (*onRead)(int, header, const void*)) {
   }
   return total;
 }
+int Server::writeAll(header h, void* data) {
+  int total = 0;
+  for (int i = 0; i <= fMaxfd; ++i) {
+    if (FD_ISSET(i, &fMasterSet)) {
+      total += this->writeDataToFd(i, h, data);
+    }
+  }
+  return total;
+}
 
 int Server::acceptConnections() {
   if (!fReady)

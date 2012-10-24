@@ -7,6 +7,7 @@ ChatClient::ChatClient () {
   fClient = NULL;
   fConnecting = false;
   fConnected = false;
+  fP2P = false;
   fTargetId = 0;
 
   fServer = new Server(randomPort());
@@ -36,7 +37,7 @@ void ChatClient::disconnect() {
 }
 
 ChatClient* tempClient;
-
+Socket* tempSocket;
 void processPacket(int cli, header h, const void* data) {
   if (h.size > 0) {
     if (h.type == kLogin) {
@@ -44,10 +45,7 @@ void processPacket(int cli, header h, const void* data) {
       tempClient->setId(h.targetId);
       printf("Welcome %s! Your id is %d\n", (char*)data, tempClient->fId);
 
-      char ipbuffer[50];
-      int length = sprintf(ipbuffer, "%s:%d", tempClient->fClient->fIP.c_str(), tempClient->fClient->fPort);
-      string ip(ipbuffer, length);
-
+      string ip = ipstring(tempClient->fServer->fIP, tempClient->fServer->fPort);
       header h(0, tempClient->fId, kLogin, ip.length());
 
       tempClient->fClient->writeData(h, (void*)ip.c_str());
@@ -58,6 +56,7 @@ void processPacket(int cli, header h, const void* data) {
       for (int i = 0; i < clients.size(); ++i) {
         printf("\t%s\n", clients[i].c_str());
       }
+
     } else if (h.type == kClientConnectRequest) {
       tempClient->fConnecting = true;
       printf("%s (Y/N)\n", (char*)data);
@@ -70,10 +69,42 @@ void processPacket(int cli, header h, const void* data) {
       tempClient->fConnected = true;
       tempClient->fTargetId = h.sourceId;
       printf("%s. Type messages and press enter to send\n", (char*)data);
+    } else if (h.type == kClientDisconnect) {
+      tempClient->fConnected = false;
+      printf("%s\n", (char*)data);
     } else if (h.type == kChatMessage) {
       printf("[User %d]:%s\n", h.sourceId, (char*)data);
-    } else if (h.type == kClientDisconnect) {
+    } else if (h.type == kP2PMessage) {
+      printf("[p2pUser %d]:%s\n", h.sourceId, (char*)data);
+
+    } else if (h.type == kP2PIPResponse) {
+      vector<string> ips = split(string((char*)data, h.size), ':');
+      if (tempClient->connectToServer(ips[0].c_str(), atoi(ips[1].c_str()))) {
+        string ip = ipstring(tempClient->fServer->fIP, tempClient->fServer->fPort);
+        header h2(h.sourceId, tempClient->fId, kP2PConnectRequest, ip.length());
+        tempClient->fClient->writeData(h2, (void*) ip.c_str());
+        printf("Connected to User %d, waiting for response\n", h.sourceId);
+      } else {
+        printf("Failed to connect with User %d. Please connect to Center\n", h.sourceId);
+      }
+
+    } else if (h.type == kP2PConnectRequest) {
+      tempClient->fP2P = true;
+      tempClient->fConnecting = true;
+      printf("User %d from %s (Y/N)\n", h.sourceId, (char*)data);
+    } else if (h.type == kP2PDisconnect) {
+      tempClient->fConnected = false;
+      tempClient->fP2P = false;
       printf("%s\n", (char*)data);
+    } else if (h.type == kP2PConnectReject) {
+      tempClient->fConnecting = false;
+      tempClient->fConnected = false;
+      printf("%s\n", (char*)data);
+    } else if (h.type == kP2PConnectAccept) {
+      tempClient->fConnecting = false;
+      tempClient->fConnected = true;
+      tempClient->fTargetId = h.sourceId;
+      printf("%s. Type messages and press enter to send\n", (char*)data);
     }
   }
 }
@@ -86,34 +117,15 @@ void ChatClient::setId(int id) {
   this->fId = id;
 }
 
-void processP2PData(int cli, header h, const void* data) {
-  if (h.size > 0) {
-    if (h.type == kClientConnectRequest) {
-      tempClient->fConnecting = true;
-      printf("%s (Y/N)\n", (char*)data);
-    } else if (h.type == kClientConnectReject) {
-      tempClient->fConnecting = false;
-      tempClient->fConnected = false;
-      printf("%s\n", (char*)data);
-    } else if (h.type == kClientConnectAccept) {
-      tempClient->fConnecting = false;
-      tempClient->fConnected = true;
-      tempClient->fTargetId = h.sourceId;
-      printf("%s. Type messages and press enter to send\n", (char*)data);
-    } else if (h.type == kChatMessage) {
-      printf("[User %d]:%s\n", h.sourceId, (char*)data);
-    } else if (h.type == kClientDisconnect) {
-      printf("%s\n", (char*)data);
-    }
-  }
-}
 
 void ChatClient::update() {
   tempClient = this;
+  tempSocket = this->fClient;
   this->fClient->readData(processPacket);
 
-  // this->fServer->acceptConnections();
-  // this->fServer->readAll(processP2PData);
+  tempSocket = this->fServer;
+  this->fServer->acceptConnections();
+  this->fServer->readAll(processPacket);
 }
 
 void ChatClient::getAvailableClients() {
@@ -125,8 +137,16 @@ void ChatClient::getAvailableClients() {
 void ChatClient::connectToClient(int id) {
   if (this->fClient != NULL) {
     string msg(this->fName);
+    this->fP2P = false;
     msg += " would like to chat with you!";
     this->fClient->writeData(header(id, this->fId, kClientConnectRequest, msg.length()), (void*)msg.c_str());
+  }
+}
+
+void ChatClient::p2pConnect(int id) {
+  if (this->fClient != NULL) {
+    string msg(this->fName);
+    this->fClient->writeData(header(id, this->fId, kP2PIPRequest, msg.length()), (void*)msg.c_str());
   }
 }
 
@@ -144,7 +164,12 @@ void ChatClient::acceptConnection(int id) {
   if (this->fClient != NULL) {
     string msg(this->fName);
     msg += " has accepted your request to chat!";
-    this->fClient->writeData(header(id, this->fId, kClientConnectAccept, msg.length()), (void*)msg.c_str());
+    debugf("p2p %d", (int)this->fP2P);
+    if (this->fP2P) {
+      this->fServer->writeAll(header(id, this->fId, kP2PConnectAccept, msg.length()), (void*)msg.c_str());
+    } else {
+      this->fClient->writeData(header(id, this->fId, kClientConnectAccept, msg.length()), (void*)msg.c_str());
+    }
     this->fConnected = true;
     this->fTargetId = id;
   }
@@ -154,13 +179,21 @@ void ChatClient::rejectConnection(int id) {
   if (this->fClient != NULL) {
     string msg(this->fName);
     msg += " has rejected your request to chat!";
+    if (this->fP2P) {
+      this->fServer->writeAll(header(id, this->fId, kP2PConnectReject, msg.length()), (void*)msg.c_str());
+    } else {
+      this->fClient->writeData(header(id, this->fId, kClientConnectReject, msg.length()), (void*)msg.c_str());
+    }
     this->fConnected = false;
-    this->fClient->writeData(header(id, this->fId, kClientConnectReject, msg.length()), (void*)msg.c_str());
   }
 }
 void ChatClient::sendMessage(string msg) {
   if (this->fClient != NULL && this->fConnected) {
     header h(this->fTargetId, this->fId, kChatMessage, msg.length());
-    this->fClient->writeData(h, (void*)msg.c_str());
+    if (this->fP2P) {
+      this->fServer->writeAll(h, (void*)msg.c_str());
+    } else {
+      this->fClient->writeData(h, (void*)msg.c_str());
+    }
   }
 }

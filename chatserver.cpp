@@ -28,6 +28,10 @@ void processServerData(int cli, header h, const void* data) {
       printf("Logged in: %s:%s\n", ipdata[0].c_str(), ipdata[1].c_str());
       i->ip = ipdata[0];
       i->port = atoi(ipdata[1].c_str());
+    } else if (h.type == kP2PIPRequest) {
+      string ip = tempServer->getClientIPNPort(h.targetId);
+      header h2(h.sourceId, h.targetId, kP2PIPResponse, ip.length());
+      tempServer->fServer->writeDataToFd(cli, h2, (void*) ip.c_str());
     } else if (h.type == kClientListRequest) {
       string clients = tempServer->getClients(cli);
       header h2(0, 0, kClientListResponse, clients.length());
@@ -44,6 +48,9 @@ int ChatServer::getClientFd(int id) {
 }
 string ChatServer::getClientName(int id) {
   return this->fClientMap[id]->name;
+}
+string ChatServer::getClientIPNPort(int id) {
+  return ipstring(fClientMap[id]->ip, fClientMap[id]->port);
 }
 
 string ChatServer::getClients(int clientFd) {

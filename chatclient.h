@@ -16,6 +16,7 @@ class ChatClient {
     int fTargetId;
     bool fConnecting;
     bool fConnected;
+    bool fP2P;
 
     bool connectToServer(string hostname, int port);
     void disconnect();
@@ -25,6 +26,8 @@ class ChatClient {
     void disconnectFromClient();
     void acceptConnection(int id);
     void rejectConnection(int id);
+
+    void p2pConnect(int id);
 
     void sendMessage(string msg);
 

@@ -35,6 +35,12 @@ void printCommands(Command cmds[], unsigned int size) {
   }
 }
 
+string ipstring(string ip, int port) {
+  char ipbuffer[50];
+  int length = sprintf(ipbuffer, "%s:%d", ip.c_str(), port);
+  return string(ipbuffer, length);
+}
+
 vector<string> split(const string &s, char delim) {
     vector<string> elems;
     stringstream ss(s);

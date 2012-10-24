@@ -14,6 +14,7 @@ class ChatServer {
 
     int getClientFd(int id);
     string getClientName(int id);
+    string getClientIPNPort(int id);
 
     string getClients(int clientFd);
     Server* fServer;
