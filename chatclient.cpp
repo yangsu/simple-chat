@@ -5,6 +5,8 @@ ChatClient::ChatClient () {
   debugf("created client");
   fClient = NULL;
   fConnecting = false;
+  fConnected = false;
+  fTargetId = 0;
 }
 
 ChatClient::~ChatClient () {
@@ -58,6 +60,8 @@ void processPacket(int cli, header h, const void* data) {
       printf("%s. Type messages and press enter to send\n", (char*)data);
     } else if (h.type == kChatMessage) {
       printf("[User %d]:%s\n", h.sourceId, (char*)data);
+    } else if (h.type == kClientDisconnect) {
+      printf("%s\n", (char*)data);
     }
   }
 }
@@ -86,6 +90,16 @@ void ChatClient::connectToClient(int id) {
     string msg(this->fName);
     msg += " would like to chat with you!";
     this->fClient->writeData(header(id, this->fId, kClientConnectRequest, msg.length()), (void*)msg.c_str());
+  }
+}
+
+void ChatClient::disconnectFromClient() {
+  if (this->fClient != NULL && this->fConnected) {
+    string msg(this->fName);
+    msg += " has stopped chatting with you!";
+    this->fClient->writeData(header(this->fTargetId, this->fId, kClientDisconnect, msg.length()), (void*)msg.c_str());
+    this->fConnected = false;
+    this->fTargetId = 0;
   }
 }
 

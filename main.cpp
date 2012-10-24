@@ -145,6 +145,17 @@ void no(int count = 0, ...) {
   }
 }
 
+void disconnect(int count = 0, ...) {
+  if (client == NULL)
+    printf("Must be create a client to issue this command\n");
+  else if (!client->fConnected)
+    printf("Must be connected to another client to issue this command\n");
+  else {
+    debugf("disconnecting chat with User %d", client->fTargetId);
+    client->disconnectFromClient();
+  }
+}
+
 void destroyClient(int count = 0, ...) {
   delete client;
   client = NULL;
@@ -168,6 +179,7 @@ Command cmds[] = {
   {"c", createClient, "start client. must specify and ip address. you can also pass in an optional port number argument"},
   {"cli", getAvailableClients, "get clients"},
   {"connect", connectToClient, "connect to another client. must specify an id"},
+  {"disconnect", disconnect, "disconnect from the current chat"},
   {"y", yes, "Accept request. must specify an id"},
   {"n", no, "Reject request. must specify an id"},
   {"h", help, "help"},
@@ -181,6 +193,8 @@ void processInput(string input) {
 
   } else if (client != NULL && client->fConnected) {
     client->sendMessage(input);
+  } else {
+    printf("You must be connected to another user to chat\n");
   }
 }
 

@@ -20,8 +20,10 @@ enum MessageType {
   kClientConnectRequest,
   kClientConnectAccept,
   kClientConnectReject,
+  kClientDisconnect,
 
   kChatMessage,
+
   kUnkown
 };
 struct header {

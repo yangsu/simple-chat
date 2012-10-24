@@ -21,6 +21,7 @@ class ChatClient {
 
     void getAvailableClients();
     void connectToClient(int id);
+    void disconnectFromClient();
     void acceptConnection(int id);
     void rejectConnection(int id);
 
