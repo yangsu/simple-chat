@@ -12,6 +12,7 @@ class Server : public Socket {
     Server(int port = DEFAULT_PORT);
     ~Server();
 
+    int readAll(void (*onRead)(int cid, header h, const void* data));
     int acceptConnections();
 
   private:
@@ -22,6 +23,7 @@ class Server : public Socket {
     };
 
     map<int, Info> map;
+    int     fPort;
 };
 
 #endif

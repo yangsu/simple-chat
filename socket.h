@@ -10,27 +10,27 @@
 #define POLLING_INTERVAL 50
 
 enum MessageType {
+  kLogin,
   kClientList,
+  kRoomList,
   kChatMessage,
   kUnkown
 };
 struct header {
   int targetId;
   MessageType type;
-  size_t size;
+  int size;
   header() {
     this->targetId = -1;
     this->type = kUnkown;
     this->size = 0;
   }
-  header(int id, MessageType t, size_t s) {
+  header(int id, MessageType t, int s) {
     this->targetId = id;
     this->type = t;
     this->size = s;
   }
 };
-
-void printData(int cli, header h, const void* data);
 
 class Socket {
   public:
@@ -39,9 +39,10 @@ class Socket {
 
     bool isConnected() { return fReady && fConnected; }
 
-    int writeData(int fd, header h, void* data);
-    int readData(int fd, void (*onRead)(int cid, header h, const void* data));
-    int readAll(void (*onRead)(int cid, header h, const void* data));
+    int writeData(header h, void* data);
+    int writeDataToFd(int fd, header h, void* data);
+    int readData(void (*onRead)(int cid, header h, const void* data));
+    int readDataFromFd(int fd, void (*onRead)(int cid, header h, const void* data));
 
     /**
      * Close all open sockets
@@ -82,7 +83,6 @@ class Socket {
     bool    fConnected;
     bool    fReady;
     int     fMaxfd;
-    int     fPort;
     int     fSockfd;
 
     /**

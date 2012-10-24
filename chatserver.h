@@ -12,6 +12,7 @@ class ChatServer {
     void listen();
 
   private:
+    int fUniqueID;
     Server* fServer;
 };
 

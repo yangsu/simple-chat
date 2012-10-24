@@ -26,11 +26,21 @@ Server::~Server() {
   this->closeAll();
 }
 
+int Server::readAll(void (*onRead)(int, header, const void*)) {
+  int total = 0;
+  for (int i = 0; i <= fMaxfd; ++i) {
+    if (FD_ISSET(i, &fMasterSet)) {
+      total += this->readDataFromFd(i, onRead);
+    }
+  }
+  return total;
+}
+
 int Server::acceptConnections() {
   if (!fReady)
     return -1;
 
-  int newfd;
+  int newfd = 0;
   fd_set workingSet;
   FD_ZERO(&workingSet);
   FD_SET(fSockfd, &workingSet);
@@ -60,5 +70,5 @@ int Server::acceptConnections() {
     this->addToMasterSet(newfd);
   }
 
-  return 0;
+  return newfd;
 }

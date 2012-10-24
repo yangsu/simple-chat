@@ -29,12 +29,33 @@ void ChatClient::disconnect() {
   }
 }
 
+ChatClient* tempClient;
+
+void processPacket(int cli, header h, const void* data) {
+  if (h.size > 0) {
+    if (h.type == kLogin) {
+      // tempClient->setName((const char*)data, h.size);
+      tempClient->setId(h.targetId);
+      debugf("Welcome %s! Your id is %d", (char*)data, tempClient->fId);
+    }
+  }
+}
+
+void ChatClient::setName(const char* name, size_t size) {
+  this->fName.assign(name, size);
+}
+
+void ChatClient::setId(int id) {
+  this->fId = id;
+}
+
 void ChatClient::read() {
-  this->fClient->readAll(printData);
+  tempClient = this;
+  this->fClient->readData(processPacket);
 }
 
 void ChatClient::getAvailableClients() {
   // if (this->fClient != NULL) {
-  this->fClient->writeData(3, header(0, kClientList, 3), (void*)"abc");
+  this->fClient->writeData(header(0, kClientList, 3), (void*)"abc");
   // }
 }
