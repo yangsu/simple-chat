@@ -18,7 +18,7 @@ Server::Server(int port) {
     fReady = false;
   } else {
     listen(fSockfd, MAX_CLIENTS);
-    debugf("Server listening on port %d", port);
+    printf("Server listening on port %d\n", port);
   }
 }
 

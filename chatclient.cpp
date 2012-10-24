@@ -14,7 +14,6 @@ ChatClient::~ChatClient () {
 }
 
 bool ChatClient::connectToServer(string hostname, int port) {
-  printf("%s\n", hostname.c_str());
   this->disconnect();
   this->fClient = new Client(hostname.c_str(), port);
   if (this->fClient->connectToServer() == 0) {

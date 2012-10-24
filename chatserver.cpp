@@ -62,11 +62,12 @@ void ChatServer::listen() {
     char namebuffer[50];
     int id = ++fUniqueID;
     int length = sprintf(namebuffer, "User %d", id);
-    debugf("[%s] %d bytes", namebuffer, length);
 
     ClientInfo* i = new ClientInfo(newfd, string(namebuffer, length));
     fClientMap.insert(pair<int, ClientInfo*>(id, i));
     fServer->writeDataToFd(newfd, header(id, 0, kLogin,length), (void*) namebuffer);
+
+    printf("User %d has connected\n", id);
   }
 
   tempServer = this;
