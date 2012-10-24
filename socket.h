@@ -57,6 +57,11 @@ class Socket {
     int readData(void (*onRead)(int cid, header h, const void* data));
     int readDataFromFd(int fd, void (*onRead)(int cid, header h, const void* data));
 
+
+    string getLocalAddr();
+    short unsigned getLocalPort();
+    string getRemoteAddr();
+    short unsigned getRemotePort();
     /**
      * Close all open sockets
      */

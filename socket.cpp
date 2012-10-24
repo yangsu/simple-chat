@@ -3,6 +3,9 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <algorithm>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include "utils.h"
 #include "socket.h"
 
@@ -230,4 +233,40 @@ int Socket::writeDataToFd(int fd, header h, void* data) {
     this->onFailedConnection(fd);
     return -1;
   }
+}
+
+string Socket::getLocalAddr() {
+  sockaddr_in addr;
+  unsigned int addr_len = sizeof(addr);
+  if (getsockname(this->fSockfd, (sockaddr *) &addr,(socklen_t *) &addr_len) < 0) {
+    error("Could not get address of peer");
+  }
+  return inet_ntoa(addr.sin_addr);
+}
+
+short unsigned Socket::getLocalPort() {
+  sockaddr_in addr;
+  unsigned int addr_len = sizeof(addr);
+  if (getsockname(this->fSockfd, (sockaddr *) &addr, (socklen_t *) &addr_len) < 0) {
+    error("Could not get port of peer");
+  }
+  return ntohs(addr.sin_port);
+}
+
+string Socket::getRemoteAddr() {
+  sockaddr_in addr;
+  unsigned int addr_len = sizeof(addr);
+  if (getpeername(this->fSockfd, (sockaddr *) &addr,(socklen_t *) &addr_len) < 0) {
+    error("Could not get address of peer");
+  }
+  return inet_ntoa(addr.sin_addr);
+}
+
+short unsigned Socket::getRemotePort() {
+  sockaddr_in addr;
+  unsigned int addr_len = sizeof(addr);
+  if (getpeername(this->fSockfd, (sockaddr *) &addr, (socklen_t *) &addr_len) < 0) {
+    error("Could not get port of peer");
+  }
+  return ntohs(addr.sin_port);
 }
