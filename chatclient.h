@@ -4,6 +4,7 @@
 #include <string>
 #include "utils.h"
 #include "client.h"
+#include "server.h"
 
 class ChatClient {
   public:
@@ -27,13 +28,13 @@ class ChatClient {
 
     void sendMessage(string msg);
 
-    void read();
+    void update();
 
     void setName(const char* name, size_t size);
     void setId(int id);
 
-  private:
     Client* fClient;
+    Server* fServer;
 };
 
 #endif

@@ -15,6 +15,11 @@ Socket::Socket() {
   fConnected = false;
   fReady = false;
   fSockfd = this->create();
+
+  fIP = this->getLocalAddr();
+  fPort = randomPort();
+
+  debugf("%s:%d", fIP.c_str(), fPort);
 }
 
 Socket::~Socket() {
@@ -244,13 +249,13 @@ string Socket::getLocalAddr() {
   return inet_ntoa(addr.sin_addr);
 }
 
-short unsigned Socket::getLocalPort() {
+int Socket::getLocalPort() {
   sockaddr_in addr;
   unsigned int addr_len = sizeof(addr);
   if (getsockname(this->fSockfd, (sockaddr *) &addr, (socklen_t *) &addr_len) < 0) {
     error("Could not get port of peer");
   }
-  return ntohs(addr.sin_port);
+  return (int)ntohs(addr.sin_port);
 }
 
 string Socket::getRemoteAddr() {
@@ -262,11 +267,11 @@ string Socket::getRemoteAddr() {
   return inet_ntoa(addr.sin_addr);
 }
 
-short unsigned Socket::getRemotePort() {
+int Socket::getRemotePort() {
   sockaddr_in addr;
   unsigned int addr_len = sizeof(addr);
   if (getpeername(this->fSockfd, (sockaddr *) &addr, (socklen_t *) &addr_len) < 0) {
     error("Could not get port of peer");
   }
-  return ntohs(addr.sin_port);
+  return (int)ntohs(addr.sin_port);
 }

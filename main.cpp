@@ -58,7 +58,7 @@ void* clientf(void* data) {
   delete i;
 
   while(!terminateClient) {
-    client->read();
+    client->update();
   }
 
   delete client;

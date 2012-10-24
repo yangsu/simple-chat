@@ -1,4 +1,5 @@
 #include "client.h"
+#include "server.h"
 #include "chatclient.h"
 
 ChatClient::ChatClient () {
@@ -7,10 +8,13 @@ ChatClient::ChatClient () {
   fConnecting = false;
   fConnected = false;
   fTargetId = 0;
+
+  fServer = new Server(randomPort());
 }
 
 ChatClient::~ChatClient () {
   this->disconnect();
+  delete fServer;
 }
 
 bool ChatClient::connectToServer(string hostname, int port) {
@@ -39,6 +43,15 @@ void processPacket(int cli, header h, const void* data) {
       tempClient->setName((const char*)data, h.size);
       tempClient->setId(h.targetId);
       printf("Welcome %s! Your id is %d\n", (char*)data, tempClient->fId);
+
+      char ipbuffer[50];
+      int length = sprintf(ipbuffer, "%s:%d", tempClient->fClient->fIP.c_str(), tempClient->fClient->fPort);
+      string ip(ipbuffer, length);
+
+      header h(0, tempClient->fId, kLogin, ip.length());
+
+      tempClient->fClient->writeData(h, (void*)ip.c_str());
+
     } else if (h.type == kClientListResponse) {
       vector<string> clients = split(string((char*)data, h.size), '|');
       printf("%d other clients are connected:\n", (int)clients.size());
@@ -73,9 +86,34 @@ void ChatClient::setId(int id) {
   this->fId = id;
 }
 
-void ChatClient::read() {
+void processP2PData(int cli, header h, const void* data) {
+  if (h.size > 0) {
+    if (h.type == kClientConnectRequest) {
+      tempClient->fConnecting = true;
+      printf("%s (Y/N)\n", (char*)data);
+    } else if (h.type == kClientConnectReject) {
+      tempClient->fConnecting = false;
+      tempClient->fConnected = false;
+      printf("%s\n", (char*)data);
+    } else if (h.type == kClientConnectAccept) {
+      tempClient->fConnecting = false;
+      tempClient->fConnected = true;
+      tempClient->fTargetId = h.sourceId;
+      printf("%s. Type messages and press enter to send\n", (char*)data);
+    } else if (h.type == kChatMessage) {
+      printf("[User %d]:%s\n", h.sourceId, (char*)data);
+    } else if (h.type == kClientDisconnect) {
+      printf("%s\n", (char*)data);
+    }
+  }
+}
+
+void ChatClient::update() {
   tempClient = this;
   this->fClient->readData(processPacket);
+
+  // this->fServer->acceptConnections();
+  // this->fServer->readAll(processP2PData);
 }
 
 void ChatClient::getAvailableClients() {

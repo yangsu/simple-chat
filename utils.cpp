@@ -1,6 +1,7 @@
 #include <cerrno>
 #include <iostream>
 #include <sstream>
+#include <cstdlib>
 #include <stdio.h>
 #include <string>
 #include <vector>
@@ -22,6 +23,10 @@ void printArgs(int count, ...) {
     printf ("arg %s\n",args[i]);
   }
 };
+
+int randomPort() {
+  return rand() % 35535 + 20000;
+}
 
 void printCommands(Command cmds[], unsigned int size) {
   printf("%u commands: \n", size);

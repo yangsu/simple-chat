@@ -20,6 +20,7 @@ typedef void* (*voidStarFunction)(void*);
 typedef void (*voidFunction)(int count, ...);
 void noop(int count, ...);
 void printArgs(int count, ...);
+int randomPort();
 
 struct IPAddr {
   IPAddr(string i, int p) {
@@ -29,6 +30,27 @@ struct IPAddr {
   string ip;
   int port;
 };
+
+struct ClientInfo {
+  ClientInfo(int f, string n) {
+    this->fd = f;
+    this->name = n;
+    this->ip = string();
+    this->port = 0;
+  }
+  ClientInfo(int f, string n, string ip, int p) {
+    this->fd = f;
+    this->name = n;
+    this->ip = ip;
+    this->port = p;
+  }
+  int fd;
+  string name;
+  string ip;
+  int port;
+};
+
+
 
 struct Command {
   string key;

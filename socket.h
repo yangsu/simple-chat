@@ -49,6 +49,8 @@ class Socket {
   public:
     Socket();
     virtual ~Socket();
+    string fIP;
+    int fPort;
 
     bool isConnected() { return fReady && fConnected; }
 
@@ -57,11 +59,11 @@ class Socket {
     int readData(void (*onRead)(int cid, header h, const void* data));
     int readDataFromFd(int fd, void (*onRead)(int cid, header h, const void* data));
 
-
     string getLocalAddr();
-    short unsigned getLocalPort();
+    int getLocalPort();
     string getRemoteAddr();
-    short unsigned getRemotePort();
+    int getRemotePort();
+
     /**
      * Close all open sockets
      */
@@ -102,7 +104,6 @@ class Socket {
     bool    fReady;
     int     fMaxfd;
     int     fSockfd;
-
     /**
     * fMasterSet contains all the file descriptors to be used for read/write.
     * For clients, this only contains the client socket. For servers, this

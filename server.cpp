@@ -12,7 +12,7 @@ Server::Server(int port) {
   serverAddr.sin_family = AF_INET;
   serverAddr.sin_addr.s_addr = INADDR_ANY;
   serverAddr.sin_port = htons(port);
-
+  fPort = port;
   if (bind(fSockfd, (sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
     debugf("ERROR on binding: %s", strerror(errno));
     fReady = false;

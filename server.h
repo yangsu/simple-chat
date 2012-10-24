@@ -13,9 +13,6 @@ class Server : public Socket {
 
     int readAll(void (*onRead)(int cid, header h, const void* data));
     int acceptConnections();
-
-  private:
-    int     fPort;
 };
 
 #endif
