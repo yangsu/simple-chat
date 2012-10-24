@@ -10,11 +10,6 @@ class ChatServer {
     ChatServer(int port = DEFAULT_PORT);
     ~ChatServer();
 
-    void listen();
-    string getClients(int clientFd);
-    Server* fServer;
-
-  private:
     struct ClientInfo {
       ClientInfo(int f, string n) {
         this->fd = f;
@@ -23,7 +18,18 @@ class ChatServer {
       int fd;
       string name;
     };
-    map<int, ClientInfo> fClientMap;
+
+    void listen();
+
+    int getClientFd(int id);
+    string getClientName(int id);
+
+    string getClients(int clientFd);
+    Server* fServer;
+
+  private:
+
+    map<int, ClientInfo*> fClientMap;
     int fUniqueID;
 };
 

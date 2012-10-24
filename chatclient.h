@@ -17,6 +17,7 @@ class ChatClient {
     void disconnect();
 
     void getAvailableClients();
+    void connectToClient(int id);
     void read();
     // void receive();
     void setName(const char* name, size_t size);

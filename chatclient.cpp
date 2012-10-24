@@ -43,6 +43,8 @@ void processPacket(int cli, header h, const void* data) {
       for (int i = 0; i < clients.size(); ++i) {
         printf("\t%s\n", clients[i].c_str());
       }
+    } else if (h.type == kClientConnectRequest) {
+      printf("%s (Y/N)\n", (char*)data);
     }
   }
 }
@@ -63,5 +65,13 @@ void ChatClient::read() {
 void ChatClient::getAvailableClients() {
   if (this->fClient != NULL) {
     this->fClient->writeData(header(0, kClientListRequest, 7), (void*)"request");
+  }
+}
+
+void ChatClient::connectToClient(int id) {
+  if (this->fClient != NULL) {
+    string msg(this->fName);
+    msg += " would like to chat with you!";
+    this->fClient->writeData(header(id, kClientConnectRequest, msg.length()), (void*)msg.c_str());
   }
 }
