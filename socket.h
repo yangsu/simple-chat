@@ -11,8 +11,9 @@
 
 enum MessageType {
   kLogin,
-  kClientList,
   kRoomList,
+  kClientListRequest,
+  kClientListResponse,
   kChatMessage,
   kUnkown
 };

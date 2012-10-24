@@ -111,7 +111,7 @@ int readFromSocket(int fd, void* dest, int size) {
   if (size > 0) {
     memcpy(dest, buffer, size);
     ((char*)dest)[size] = '\0';
-    debugf("dest %s", dest);
+    // debugf("dest %s", dest);
   }
   free(buffer);
   return size;

@@ -1,7 +1,6 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <map>
 #include "socket.h";
 #include "utils.h";
 
@@ -16,13 +15,6 @@ class Server : public Socket {
     int acceptConnections();
 
   private:
-
-    struct Info {
-      string name;
-      string address;
-    };
-
-    map<int, Info> map;
     int     fPort;
 };
 

@@ -34,9 +34,15 @@ ChatClient* tempClient;
 void processPacket(int cli, header h, const void* data) {
   if (h.size > 0) {
     if (h.type == kLogin) {
-      // tempClient->setName((const char*)data, h.size);
+      tempClient->setName((const char*)data, h.size);
       tempClient->setId(h.targetId);
-      debugf("Welcome %s! Your id is %d", (char*)data, tempClient->fId);
+      printf("Welcome %s! Your id is %d", (char*)data, tempClient->fId);
+    } else if (h.type == kClientListResponse) {
+      vector<string> clients = split(string((char*)data, h.size), '|');
+      printf("%d other clients are connected:\n", (int)clients.size());
+      for (int i = 0; i < clients.size(); ++i) {
+        printf("\t%s\n", clients[i].c_str());
+      }
     }
   }
 }
@@ -55,7 +61,7 @@ void ChatClient::read() {
 }
 
 void ChatClient::getAvailableClients() {
-  // if (this->fClient != NULL) {
-  this->fClient->writeData(header(0, kClientList, 3), (void*)"abc");
-  // }
+  if (this->fClient != NULL) {
+    this->fClient->writeData(header(0, kClientListRequest, 7), (void*)"request");
+  }
 }
