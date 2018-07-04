@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include "utils.h"
 #include "socket.h"
+#include <cstring>
 
 Socket::Socket() {
   fMaxfd = 0;

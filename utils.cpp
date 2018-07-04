@@ -6,7 +6,8 @@
 #include <string>
 #include <vector>
 #include "utils.h"
-
+#include <stdarg.h>
+#include <string.h>
 using namespace std;
 
 // vector<string> noargs(0);

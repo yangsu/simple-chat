@@ -1,10 +1,11 @@
 #include <iostream>
-#include <string>
+#include <string.h>
 #include <cstdlib>
 #include <stdio.h>
 #include <pthread.h>
 #include <vector>
 #include <map>
+#include <stdarg.h>
 
 #include "utils.h"
 #include "socket.h"

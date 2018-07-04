@@ -1,7 +1,7 @@
 #include <cerrno>
 #include <netinet/in.h>
 #include <sys/socket.h>
-
+#include <cstring>
 #include "utils.h"
 #include "server.h"
 

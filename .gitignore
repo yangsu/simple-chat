@@ -14,3 +14,6 @@
 *.out
 *.sublime*
 main
+.idea/
+cmake-build-debug/
+

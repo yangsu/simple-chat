@@ -1,8 +1,8 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include "socket.h";
-#include "utils.h";
+#include "socket.h"
+#include "utils.h"
 
 using namespace std;
 

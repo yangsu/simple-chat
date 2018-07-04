@@ -2,7 +2,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include <cerrno>
-
+#include <cstring>
 #include "client.h"
 
 using namespace std;
