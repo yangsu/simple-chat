@@ -8,16 +8,10 @@ include_directories(.)
 
 add_executable(simple_chat
         chatclient.cpp
-        chatclient.h
         chatserver.cpp
-        chatserver.h
         client.cpp
-        client.h
         main.cpp
         server.cpp
-        server.h
         socket.cpp
-        socket.h
-        utils.cpp
-        utils.h)
+        utils.cpp)
 target_link_libraries(simple_chat Threads::Threads)
